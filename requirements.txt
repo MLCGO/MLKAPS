@@ -1,0 +1,12 @@
+deprecated
+pytest
+matplotlib
+numpy==1.26
+pandas
+pymoo==0.6.1.1
+scikit_learn
+scipy
+smt
+tqdm
+lightgbm
+xgboost

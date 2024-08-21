@@ -1,0 +1,26 @@
+[project]
+name = "mlkaps"
+description = "Machine Learning for Kernel accuracy and performance studies."
+version = "0.3.0.1"
+
+dependencies = [
+    "deprecated",
+    "pytest",
+    "scikit_learn",
+    "matplotlib",
+    "numpy==1.26",
+    "pandas",
+    "pymoo==0.6.1.1",
+    "scipy",
+    "smt",
+    "tqdm",
+    "lightgbm",
+    "xgboost"
+]
+
+[project.scripts]
+mlkaps = "mlkaps:MLKaps.run_from_args"
+
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.7,<4"]

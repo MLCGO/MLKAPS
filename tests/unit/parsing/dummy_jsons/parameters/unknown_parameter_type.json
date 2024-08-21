@@ -1,0 +1,189 @@
+{
+  "verbose": true,
+  "debug": false,
+  "PARAMETERS": {
+    "DESIGN_PARAMETERS": {
+      "summation": {
+        "Type": "my_type_that_does_not_exist",
+        "Values": [
+          "1sub",
+          "2sublow",
+          "2subhigh",
+          "3sub"
+        ]
+      },
+      "alternate": {
+        "Type": "my_other_type_that_does_not_exist",
+        "comment_Values": [
+          false,
+          true
+        ]
+      },
+      "block_size": {
+        "Type": "",
+        "Values": [
+          8,
+          64
+        ]
+      }
+    },
+    "KERNEL_INPUTS": {
+      "vec_size": {
+        "Type": "my_other_other_type_that_does_not_exist",
+        "Values": [
+          128,
+          32768
+        ]
+      },
+      "cond": {
+        "Type": "",
+        "Values": [
+          1,
+          100000000
+        ]
+      }
+    }
+  },
+  "SAMPLING": {
+    "sampling_verbose": true,
+    "sampling_debug": false,
+    "scripts": {
+      "pre_exec": "setvariables.sh",
+      "executable": "a.out",
+      "compilation_script": "compiler.sh"
+    },
+    "objectives": [
+      "accuracy",
+      "performance"
+    ],
+    "exec_arguments_order": [
+      "summation",
+      "alternate",
+      "block_size",
+      "cond",
+      "vec_size"
+    ],
+    "samples_count": 10,
+    "sampling_method": "random",
+    "method_parameters": {
+      "num_samples": 120
+    },
+    "output_path": "acc_perf.csv",
+    "visualisation": {
+      "vec_size": {
+        "scale": "lin"
+      },
+      "cond": {
+        "scale": "log"
+      },
+      "output_path": "data_collection_images/",
+      "prefix": "clustering_prefix",
+      "dpi": 1200
+    }
+  },
+  "DATA_PREPROCESSING": {
+    "data_preprocessing_verbose": true,
+    "data_preprocessing_debug": false,
+    "transforms": {
+      "accuracy": "apply_log",
+      "performance": ""
+    },
+    "visualisation": {
+      "vec_size": {
+        "scale": "lin"
+      },
+      "cond": {
+        "scale": "log"
+      },
+      "preprocessing_output_path": "preprocessing_images/",
+      "preprocessing_plot_path": "clustering_prefix",
+      "dpi": 1200
+    }
+  },
+  "MODELING": {
+    "modeling_verbose": true,
+    "modeling_debug": false,
+    "modeling_method": "xgboost",
+    "model_parameters": {
+      "max_depth": 7,
+      "n_estimators": 100
+    },
+    "visualisation": {
+      "vec_size": {
+        "Steps": 1000,
+        "scale": "lin"
+      },
+      "cond": {
+        "Steps": 10000,
+        "scale": "log"
+      },
+      "modeling_visu_path": "modeling_images/",
+      "modeling_plot_prefix": "modeling_",
+      "dpi": 100
+    }
+  },
+  "OPTIMIZATION": {
+    "optimization_verbose": true,
+    "optimization_debug": false,
+    "sampling_method": "grid",
+    "sampling_parameters": {
+      "vec_size": {
+        "sample_count": 20,
+        "scale": "lin"
+      },
+      "cond": {
+        "sample_count": 20,
+        "scale": "lin"
+      }
+    },
+    "optimization_method": "genetic",
+    "optimization_parameters": {
+      "evolution": {
+        "pop_size": 40,
+        "n_offsprings": 20
+      },
+      "termination": {
+        "time": "00:00:01"
+      },
+      "selection_method": "normalized_selection",
+      "selection_parameters": {
+        "coefficients": {
+          "accuracy": 1,
+          "performance": 1
+        }
+      }
+    },
+    "visualisation": {
+      "vec_size": {
+        "scale": "lin"
+      },
+      "cond": {
+        "scale": "lin"
+      },
+      "optim_path_prefix": "optim_images/",
+      "optim_plot_prefix": "optimization_prefix",
+      "dpi": 100
+    }
+  },
+  "CLUSTERING": {
+    "clustering_verbose": true,
+    "clustering_debug": false,
+    "clustering_method": "decision_tree",
+    "clustering_parameters": {
+      "max_depth": 5,
+      "random_state": 0
+    },
+    "visualisation": {
+      "vec_size": {
+        "scale": "lin"
+      },
+      "cond": {
+        "scale": "lin"
+      },
+      "output_path": "clustering_images/",
+      "prefix": "clustering_prefix",
+      "dpi": 100,
+      "nb_levels": 20
+    }
+  }
+}
