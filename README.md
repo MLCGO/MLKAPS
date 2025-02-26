@@ -25,7 +25,7 @@ MLKAPS is conceived to generate decision trees that give the best configuration 
 
 ![MLKAPS workflow chart](doc/workflow.png)
 
-This workflow represents MLKAPS pipeline. Given a kernel taking a set of input parameters I (matrix size, length of input vector, ...) and a set of design parameters D (number of threads, number of nodes, block size, tiling...), and an objective function Ob(i),  MLKAPS goal is to find a function F such that F(i)=d_min with d_min=argmin(Ob(I)), i.e. for each input in I return the design parameters in D that minimize the objective(s) Ob. Current releas focus on F being a decision tree that provide the best configuration trade-off for any input to easily translate into code to be used in high-performance libraries. 
+This workflow represents MLKAPS pipeline. Given a kernel taking a set of input parameters I (matrix size, length of input vector, ...) and a set of design parameters D (number of threads, number of nodes, block size, tiling...), and an objective function Ob(i),  MLKAPS goal is to find a function F such that F(i)=d_min with d_min=argmin(Ob(i)), i.e. for each input in I return the design parameters in D that minimize the objective(s) Ob. Current releas focus on F being a decision tree that provide the best configuration trade-off for any input to easily translate into code to be used in high-performance libraries. 
 
 The main steps of the pipeline for software kernel optimization are:
 1. **Input configuration**: The users provides a JSON configuration files describing the application to tune, including the input and design parameters, and MLKAPS workflow configuration.
