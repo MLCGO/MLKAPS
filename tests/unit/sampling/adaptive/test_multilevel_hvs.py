@@ -5,7 +5,8 @@
     SPDX-License-Identifier: BSD-3-Clause
 """
 
-import unittest
+import pytest
+import tempfile
 from mlkaps.sampling.adaptive.multilevel_hvs import MultilevelHVS
 import pandas as pd
 
@@ -20,7 +21,7 @@ def _run_simple_multilevel_hvs(features_types, features_values, levels):
     assert len(data) == 70
 
 
-class TestMultilevelHVS(unittest.TestCase):
+class TestMultilevelHVS:
     def test_can_run(self):
         features_types = {"a": "int", "b": "int"}
         features_values = {"a": [0, 5], "b": [-5, 0]}
@@ -50,6 +51,8 @@ class TestMultilevelHVS(unittest.TestCase):
         _run_simple_multilevel_hvs(features_types, features_values, levels)
 
     def test_validate_multilevel_hvs(self, tmp_path):
+
+
         features_types = {"x": "int", "optim": "int"}
         features_values = {"x": [0, 300], "optim": [0, 200]}
         levels = [["x"], ["optim"]]
@@ -97,8 +100,8 @@ class TestMultilevelHVS(unittest.TestCase):
                 )
                 ax.add_patch(rect)
 
-        fig.savefig(tmp_path + "/test.png")
+        fig.savefig(tmp_path / "test.png")
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pytest.main()

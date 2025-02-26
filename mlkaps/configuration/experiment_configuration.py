@@ -75,7 +75,9 @@ class ExperimentConfig:
         )
 
         parser.parse_objectives(self, config_dict)
-        self.objectives = self["experiment"]["objectives"]
+        self.objectives = self["experiment"]["objectives_list"]
+        self.objectives_directions = self["experiment"]["objectives_directions"]
+        self.objectives_bounds = self["experiment"]["objectives_bounds"]
 
         parser.parse_modeling(self, config_dict)
         parser.parse_clustering(self, config_dict)

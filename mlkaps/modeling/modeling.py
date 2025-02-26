@@ -32,7 +32,7 @@ class SurrogateFactory:
 
         # Ensure the data is correctly encoded to the right type
         self.sampled_data = encode_dataframe(config.parameters_type, sampled_data)
-
+  
         # Fetch the modeling method in the configuration if not given
         if model_name is None:
             model_name = self.config["modeling"]["modeling_method"]

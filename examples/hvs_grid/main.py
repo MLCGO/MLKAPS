@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from mlkaps.sampling import HVSampler
+from mlkaps.sampling.adaptive import HVSampler
 import numpy as np
 import matplotlib.pyplot as plt
 import os

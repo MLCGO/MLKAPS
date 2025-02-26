@@ -298,8 +298,8 @@ class ExecutorFactory:
         timeout = _get_key_or_error(
             param,
             "timeout",
-            "No timeout defined for the kernel sampling module, defaulting to 600s\nSet 'timeout' to 'None' to disable timeout.",
-            default=600,
+            "No timeout defined for the kernel sampling module, defaulting to 30s\nSet 'timeout' to 'None' to disable timeout.",
+            default=30,
             fatal=False,
         )
 
@@ -315,6 +315,7 @@ class ExecutorFactory:
         )
         kernel = _make_path_absolute(kernel, self.config.working_directory)
         objectives = self.config.objectives
+        bounds = self.config.objectives_bounds
         timeout = self._get_timeout(param)
         parameters_order = _get_key_or_error(
             param,
@@ -322,7 +323,7 @@ class ExecutorFactory:
             "Subprocess runner requires a 'parameters_order' parameter",
         )
 
-        res = MonoSubprocessHarness(objectives, kernel, parameters_order, timeout)
+        res = MonoSubprocessHarness(objectives, bounds, kernel, parameters_order, timeout)
         return res
 
     def _build_function_runner(self, param):

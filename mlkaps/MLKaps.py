@@ -65,8 +65,8 @@ def run_clustering(args, experiment_config, optim_results):
     # Properly re-implement it
     clustered_models = generate_clustering_models(experiment_config, optim_results)
 
-    plot_all_decisions_maps(experiment_config, optim_results, clustered_models)
-    plot_all_decision_tree(experiment_config, clustered_models)
+    #plot_all_decisions_maps(experiment_config, optim_results, clustered_models)
+    #plot_all_decision_tree(experiment_config, clustered_models)
 
     # Experimental
     decision_trees_to_c(experiment_config, clustered_models)

@@ -194,7 +194,7 @@ def _scatter_optimization_results(
     if feature_type in ["Categorical", "Boolean"]:
         inverse_value_map = {
             v: k
-            for k, v in configuration["parameters"]["feature_map"][design_param].items()
+            for k, v in configuration["parameters"]["feature_values"][design_param].items()
         }
         y = np.vectorize(inverse_value_map.get)(y)
 
@@ -246,7 +246,7 @@ def _format_clustering_predictions(configuration, design_param, predictions, x_s
         # We need to map categorial values to their index
         inverse_value_map = {
             v: k
-            for k, v in configuration["parameters"]["feature_map"][design_param].items()
+            for k, v in configuration["parameters"]["feature_values"][design_param].items()
         }
 
         predictions = np.vectorize(inverse_value_map.get)(predictions)

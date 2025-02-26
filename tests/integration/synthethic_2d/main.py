@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import sys
 from math import sin, cos
 
@@ -7,7 +6,7 @@ from math import sin, cos
 def main(cdict: dict | None = None):
 
     if cdict is None:
-        if len(sys.argv) != 4:
+        if len(sys.argv) < 4:
             exit(1)
 
         x = float(sys.argv[1])

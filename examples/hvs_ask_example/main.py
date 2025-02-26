@@ -2,7 +2,7 @@
 
 from numpy import sin, pi
 import numpy as np
-from mlkaps.sampling import HVSampler
+from mlkaps.sampling.adaptive import HVSampler
 import matplotlib.pyplot as plt
 import pandas as pd
 

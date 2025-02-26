@@ -31,15 +31,16 @@ from .. import RandomSampler, LhsSampler
 import logging
 
 
-import pymoo.termination
 from tqdm import tqdm
-import os
 import logging
 import time
 from pymoo.termination.collection import TerminationCollection
 from pymoo.termination.ftol import MultiObjectiveSpaceTermination
 from pymoo.termination.robust import RobustTermination
 from pymoo.termination import get_termination
+
+
+from mlkaps.modeling.encoding import encode_dataframe
 
 
 class GAAdaptiveSampler:
@@ -204,7 +205,8 @@ class GAAdaptiveSampler:
         return self._sample_kernel(lhs_samples)
 
     def _resampling_loop(self, samples, pbar) -> pd.DataFrame:
-        pbar.set_description("GA-Adaptive")
+        pbar.set_description("GA-Adaptive-Random")
+        print("Running GA-Adaptive-Random")
 
         final_ratio_delta = self.final_ga_ratio - self.initial_ga_ratio
         while len(samples) < self.n_samples:
@@ -230,7 +232,11 @@ class GAAdaptiveSampler:
                 delta = leftover_samples
             else:
                 delta = max(0, leftover_samples - len(new_points))
-            hvs_samples = self._pick_hvs_samples(delta, samples)
+            #hvs_samples = self._pick_hvs_samples(delta, samples)
+
+            sampler = RandomSampler(self.config.parameters_type, self.features)
+            random_samples = sampler.sample(delta)
+            random_samples = pd.concat([samples, self._sample_kernel(random_samples)])
 
             # Concat GA points with HVS picked samples
             # Note that the HVS sampler already concatenates the new points with the old ones,
@@ -240,10 +246,11 @@ class GAAdaptiveSampler:
 
             samples = pd.concat(
                 [
-                    hvs_samples,
+                    random_samples,
                     ga_points,
                 ]
             )
+            samples.reset_index(drop=True, inplace=True)
 
             # FIXME: dirty quick-restart
             samples.to_csv(self.output_path, index=False)
@@ -321,6 +328,11 @@ class GAAdaptiveSampler:
         # First, pick new optimization points
         optimization_points = self._pick_random_optimization_points(n_samples)
 
+        #print head of samples and dtype
+        #print(samples.head())
+        #print(samples.dtypes)
+        #print(self.config.parameters_type.keys())
+        #print(self.config.parameters_type.values())
         # Fit models to the currently sampled points
         models = self._fit_models(samples)
 
@@ -439,6 +451,7 @@ class GAAdaptiveSampler:
             )
             model, _ = tuner.run(time_budget=2 * 60, n_trials=128)
         else:
+            print("Building oracle model for ga-adaptive step")
             factory = SurrogateFactory(self.config, samples)
             model = factory.build(obj)
         return model
@@ -460,8 +473,10 @@ class GAAdaptiveSampler:
             if first_iter or (self.iteration % 4) == 0:
                 self.models[obj] = self._build_model(obj, samples)
             else:
+                new_X,new_y=samples.drop(self.config.objectives, axis=1), samples[obj]
+                new_X = encode_dataframe(self.config.parameters_type, new_X)
                 self.models[obj].fit(
-                    samples.drop(self.config.objectives, axis=1), samples[obj]
+                    new_X, new_y
                 )
 
         return self.models

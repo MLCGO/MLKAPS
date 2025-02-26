@@ -36,13 +36,15 @@ def add_file_logger(output_dir: pathlib.Path):
 
 
 def ensure_not_root(args):
-    if os.getuid() != 0 or args.allow_root:
+    if args.allow_root:
         return
-
-    logging.critical(
-        "MLKAPS was run with root permissions. This is not allowed due to security concerns, exiting (1)"
-    )
-    exit(1)
+    if "posix" in os.name and os.geteuid() == 0:
+        logging.critical(
+            "MLKAPS was run with root permissions. This is not allowed due to security concerns, exiting (1)"
+        )
+        exit(1)
+    else:
+        return
 
 
 _ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")

@@ -40,7 +40,8 @@ class LightGBMWrapper(ModelWrapper, wrapper_name="lightgbm"):
         """
 
         # LightGBM will complain if the DataFrame doesn't have the right dtypes
-        return df.astype(self.encoding)
+        res=df.astype(self.encoding)
+        return res
 
     def _fit(self, X, y):
         # Save the dtypes of the training dataset

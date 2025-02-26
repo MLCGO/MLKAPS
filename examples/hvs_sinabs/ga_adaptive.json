@@ -24,10 +24,7 @@
     "DESIGN_PARAMETERS": {
       "b": {
         "Type": "float",
-        "Values": [
-          1,
-          5
-        ]
+        "Values": [1, 5]
       }
     }
   },
@@ -41,13 +38,13 @@
         "b"
       ]
     },
-    "sampler": "multilevel_hvs",
+    "sampler": "ga_adaptive",
     "sampler_parameters": {
-      "stopping_criteria": {
-        "max_n_samples": {
-          "n_samples": 100
-        }
-      }
+      "n_samples": 100,
+      "n_iterations": 10,
+      "bootstrap_ratio": 0.25,
+      "initial_ga_ratio": 0.05,
+      "final_ga_ratio": 0.1
     }
   },
   "MODELING": {
@@ -61,6 +58,7 @@
       "boosting": "gbdt",
       "learning_rate": 0.15
     }
+
   },
   "OPTIMIZATION": {
     "sampling": {
@@ -68,20 +66,19 @@
         "sampling_method": "grid"
       },
       "sample_count": {
-        "x": 2,
-        "y": 2
+        "x": 4,
+        "y": 4
       }
     },
     "optimization_method": "genetic",
     "optimization_parameters": {
       "evolution": {
-        "pop_size": 20
+        "pop_size": 30
       },
       "termination": {
         "time": "00:00:5"
       },
-      "selection_method": "mono",
-      "early_stopping": true
+      "selection_method": "mono"
     }
   },
   "CLUSTERING": {

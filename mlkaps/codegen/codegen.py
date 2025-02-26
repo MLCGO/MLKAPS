@@ -105,5 +105,12 @@ def decision_tree_to_c(configuration: ExperimentConfig, decision_tree, feature):
         return output_str
 
     output_str = recurse(output_str, left, right, splitting_threshold, features, 0, 0)
-    print(f'Decision Tree for "{feature}":')
-    print(output_str)
+    
+    #print(output_str)
+    # Save the output string to a file
+    
+    file_name = f"C_{feature}_tree.c"
+    print(f'Decision Tree for "{feature}"saved to C_{feature}_tree.c')
+    with open(file_name, "w") as file:
+        file.write(output_str)
+        print(f"Decision tree saved to {file_name}")

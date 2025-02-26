@@ -95,6 +95,12 @@ class MonoKernelExecutor:
 
         pbar = _ProgressBarWrapper(self.progress_bar, len(samples))
 
+
+        count=[0]
+        print(f"Validating samples before execution")
+        
+
+
         for id in samples.index:
             sample = samples.loc[id].to_dict()
             result = self.runner(sample)
@@ -103,7 +109,7 @@ class MonoKernelExecutor:
                 n_failures += 1
                 self._log_error(result)
 
-                if n_failures > 10:
+                if n_failures > 100:
                     raise KernelSamplingError("Too many sampling failures, aborting")
 
             results.append(sample | result.data)

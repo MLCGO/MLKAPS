@@ -8,6 +8,7 @@
 import os
 from pathlib import Path
 from deprecated import deprecated
+import numpy as np
 
 from ._parsing_helpers import set_if_defined
 
@@ -123,20 +124,33 @@ def parse_experiment_parameters(configuration, json_file):
 
 # Parse the objectives and data sampling parameters
 def parse_objectives(configuration, data_section):
-    experiment_section = data_section["EXPERIMENT"]
-    if "objectives" not in experiment_section:
-        raise Exception("The configuration file does not define any objectives")
+        experiment_section = data_section["EXPERIMENT"]
+        if "objectives" not in experiment_section:
+            raise Exception("The configuration file does not define any objectives")
 
-    configuration["experiment"] = {}
-    keys = configuration["experiment"]
+        configuration["experiment"] = {}
+        keys = configuration["experiment"]
 
-    keys["objectives"] = experiment_section["objectives"]
+        keys["objectives"] = experiment_section["objectives"]
 
-    keys["objectives_directions"] = experiment_section.get("directions", {})
+        keys["objectives_list"] = []
+        keys["objectives_directions"] = {}
+        keys["objectives_bounds"] = {}
 
-    for k in keys["objectives"]:
-        if k not in keys["objectives_directions"]:
-            keys["objectives_directions"][k] = "minimize"
+        # Check if keys["objectives"] is a list (support legacy objectives declaration without bounds and directions)
+        if isinstance(keys["objectives"], list):
+            for objective in keys["objectives"]:
+                # Assuming details are provided in another section or default values
+                keys["objectives_list"].append(objective)
+                keys["objectives_directions"][objective] = "minimize"  # Default direction
+                keys["objectives_bounds"][objective] = np.nan  # Default bound
+        elif isinstance(keys["objectives"], dict):
+            for objective, details in keys["objectives"].items():
+                keys["objectives_list"].append(objective)
+                keys["objectives_directions"][objective] = details.get("direction", "minimize")
+                keys["objectives_bounds"][objective] = details.get("bound", np.nan)
+        else:
+            raise Exception("Invalid format for objectives")
 
 
 def parse_modeling(configuration, json_data):

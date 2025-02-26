@@ -40,5 +40,5 @@ def encode_dataframe(dtypes: dict, dataframe: pd.DataFrame):
             continue
         ftype = dtypes[feature]
         mapping[feature] = _encoding[ftype]
-
-    return dataframe.astype(mapping)
+    encoded_dataframe = dataframe.astype(mapping)
+    return encoded_dataframe

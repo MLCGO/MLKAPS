@@ -8,15 +8,21 @@ dependencies = [
     "pytest",
     "scikit_learn",
     "matplotlib",
-    "numpy==1.26",
+    "numpy",
     "pandas",
-    "pymoo==0.6.1.1",
+    "pymoo",
     "scipy",
     "smt",
     "tqdm",
     "lightgbm",
-    "xgboost"
+    "xgboost",
+    "optuna",
+    "psutil",
+    "flit-core",
+    "tk"
 ]
+
+
 
 [project.scripts]
 mlkaps = "mlkaps:MLKaps.run_from_args"

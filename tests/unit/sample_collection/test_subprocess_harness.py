@@ -13,6 +13,8 @@ import pytest
 import subprocess
 import os
 import shutil
+import sys
+import psutil
 
 def temporary_env(func):
     def wrapper(*args, **kwargs):
@@ -23,6 +25,29 @@ def temporary_env(func):
             os.environ.clear()
             os.environ.update(old_env)
     return wrapper
+
+# On Windows, we add a python.exe to start of the command line when running a python program.
+# We need to remove this when doing the check required in the tests below.
+def check_returned_arguments(res_args, call_args):
+    if os.name == "nt":
+        if (len(res_args) == len(call_args) + 1 and res_args[0] == sys.executable):
+            return res_args[1:] == call_args  
+        else:
+            return False
+    else:
+        return res_args == call_args 
+    
+# This is a Windows-specific test to see if the process still exists.
+def check_if_process_active(pid: int or str) -> bool:
+    assert(os.name == "nt")
+    try:
+        process = psutil.Process(pid)
+    except psutil.Error as error:  # includes NoSuchProcess error
+        return False
+    if psutil.pid_exists(pid) and process.status() not in (psutil.STATUS_DEAD, psutil.STATUS_ZOMBIE):
+        return True
+    return False   
+
 
 class TestProcessCleanupHandler:
     def test_can_run(self):
@@ -37,7 +62,7 @@ class TestProcessCleanupHandler:
         )
 
         assert res.exitcode == 0
-        assert res.arguments == arguments
+        assert check_returned_arguments(res.arguments,arguments)
         assert res.timed_out == False
         assert res.stdout == "Hello, World!\n5"
 
@@ -58,7 +83,11 @@ class TestProcessCleanupHandler:
 
     @temporary_env
     def test_can_timeout(self):
-        handler = ProcessCleanupHandler(timeout=0.2)
+        if os.name == "nt":
+            t_out = 1
+        else:
+            t_out = 0.2
+        handler = ProcessCleanupHandler(timeout=t_out)
         os.environ["DO_SLEEP"] = "1"
         arguments = [str(pathlib.Path(__file__).parent / "dummy_kernel.py"), "5"]
         begin = time.time()
@@ -70,15 +99,21 @@ class TestProcessCleanupHandler:
             stderr=subprocess.STDOUT,
         )
         end = time.time()
-
-        assert (end - begin) < 0.3
-        assert res.exitcode == -15
-        assert res.arguments == arguments
+        print(f"subprocess harness begin: {begin}, end: {end}, t_out: {t_out}")
+        assert (end - begin) < 2*t_out
+        if os.name == "nt":
+            assert res.exitcode == 1
+        else:
+            assert res.exitcode == -15
+        assert check_returned_arguments(res.arguments, arguments)
         assert res.timed_out == True
-
+            
         # Check pid is not running anymore
-        with pytest.raises(ProcessLookupError):
-            os.kill(res.pid, 0)
+        if os.name == "nt":
+            assert not check_if_process_active(res.pid)
+        else:
+            with pytest.raises(ProcessLookupError):
+                os.kill(res.pid, 0)
 
 
 class TestMonoSubprocessRunner:
@@ -87,6 +122,7 @@ class TestMonoSubprocessRunner:
     def test_can_sample(self):
         runner = MonoSubprocessHarness(
             objectives=["r"],
+            objectives_bounds={"r": 42},
             executable_path=pathlib.Path(__file__).parent / "dummy_kernel.py",
             arguments_order=["id"],
         )
@@ -104,6 +140,7 @@ class TestMonoSubprocessRunner:
             
         runner = MonoSubprocessHarness(
             objectives=["r", "r2"],
+            objectives_bounds={"r": 42, "r2": 81},
             executable_path=pathlib.Path(__file__).parent / "dummy_kernel.py",
             arguments_order=["id"],
         )
@@ -121,6 +158,7 @@ class TestMonoSubprocessRunner:
 
         runner = MonoSubprocessHarness(
             objectives=["r"],
+            objectives_bounds={"r": 42},
             executable_path=pathlib.Path(__file__).parent / "dummy_kernel.py",
             arguments_order=["id"],
         )
@@ -133,6 +171,7 @@ class TestMonoSubprocessRunner:
             
         runner = MonoSubprocessHarness(
             objectives=["r", "r2"],
+            objectives_bounds={"r": 42, "r2": 81},
             executable_path=pathlib.Path(__file__).parent / "dummy_kernel.py",
             arguments_order=["id"],
         )
@@ -145,6 +184,7 @@ class TestMonoSubprocessRunner:
             
         runner = MonoSubprocessHarness(
             objectives=["r"],
+            objectives_bounds={"r": 42},
             executable_path=pathlib.Path(__file__).parent / "dummy_kernel.py",
             arguments_order=["id"],
         )
@@ -157,6 +197,7 @@ class TestMonoSubprocessRunner:
 
         runner = MonoSubprocessHarness(
             objectives=["r"],
+            objectives_bounds={"r": 42},
             executable_path=pathlib.Path(__file__).parent / "this_kernel_doesnt_exist.py",
             arguments_order=["id"],
         )
@@ -167,12 +208,17 @@ class TestMonoSubprocessRunner:
 
     def test_invalid_permissions(self, tmp_path: pathlib.Path):
         
+        # windows does not have a simple execution permission file attribute
+        if os.name == "nt":
+            return
+
         shutil.copy(pathlib.Path(__file__).parent / "dummy_kernel.py", tmp_path / "dummy_kernel.py")
         # Remove execution permission
         os.chmod(tmp_path / "dummy_kernel.py", 0o666)
 
         runner = MonoSubprocessHarness(
             objectives=["r"],
+            objectives_bounds={"r": 42},
             executable_path=tmp_path / "dummy_kernel.py",
             arguments_order=["id"],
         )

@@ -48,11 +48,15 @@ class TestMonoKernelSampler:
 
         sampler = _build_discard_sampler(functor=fail_on_even)
 
+
+        # On Windows astype(int) converts int64 to int32 
+        # This is a Windows "feature" https://github.com/pandas-dev/pandas/issues/44925
+        # We need to add astype(int) to the assert below
         samples = pd.DataFrame({"id": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
         results = sampler(samples).astype(int)
 
         assert results.equals(
-            pd.DataFrame({"id": [1, 3, 5, 7, 9], "r": [1, 3, 5, 7, 9]})
+             pd.DataFrame({"id": [1, 3, 5, 7, 9], "r": [1, 3, 5, 7, 9]}).astype(int)
         )
 
     def test_handles_full_failure(self):
