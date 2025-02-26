@@ -11,9 +11,10 @@ To contribute, please open a new Github PR or get in contact with the contributo
  * [Description](#description)
  * [Installation](#installation)
  * [Usage](#usage)
-    * [Configuring an experiement](#Creating-a-configuration-file)
+    * [Configuring an experiement](#creating-a-configuration-file)
     * [Launching an experiment](#launching-an-experiment)  
  * [Licence and copyright](#licence-and-copyright)  
+ * [Cite this work](#cite-this-work)
  
 ## Description
 
@@ -87,3 +88,11 @@ mlkaps -o <output_directory> <config.json>
 * Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
 * Copyright (C) 2024-  MLKAPS contributors
 * SPDX-License-Identifier: BSD-3-Clause
+
+## Cite this work
+
+[MLKAPS: Machine Learning and Adaptive Sampling for HPC Kernel Auto-tuning](https://arxiv.org/abs/2501.05811)
+
+Mathys Jam (LI-PaRAD, UVSQ), Eric Petit (Intel), Pablo de Oliveira Castro (LI-PaRAD, UVSQ), David Defour (LAMPS, UPVD), Greg Henry, William Jalby (LI-PaRAD, UVSQ)
+
+
