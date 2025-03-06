@@ -378,7 +378,7 @@ class FunctionTimeoutWrapper:
 
         # Start the subprocess and wait for timeout or finish 
         if os.name == "nt" and not self.function.is_callable_in_subprocess:
-            assert(is_pickleable(self.wrapper_from_file_location), "wrapper not pickleable")
+            assert is_pickleable(self.wrapper_from_file_location), "wrapper not pickleable"
             module_path = self.function._module_path
             function_name = self.function._function_name
             proc = multiprocessing.Process(
