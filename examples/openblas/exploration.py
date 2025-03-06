@@ -134,7 +134,8 @@ def main():
     with plt.rc_context(rc={"font.size": 10}):
         # We want one lineplot per vector size
         fig, axs = plt.subplots(4, 4, figsize=(16, 16), layout="constrained")
-        colors = matplotlib.colormaps.get_cmap('tab10', len(runs["run"].unique()))  # Use the updated colormap function
+        colormap = matplotlib.colormaps.get_cmap('tab10')  # Get the colormap
+        colors = [colormap(i) for i in range(len(runs["run"].unique()))]  # Generate colors
         for ax, size in zip(axs.flatten(), np.unique(samples["vecsize"])):
             subset = samples[samples["vecsize"] == size]
             ax.plot(subset["nthreads"], subset["performance"], marker="o")
@@ -145,7 +146,7 @@ def main():
             for i, run_name in enumerate(runs["run"].unique()):
                 run = runs[runs["run"] == run_name]
                 run = run[run["vecsize"] == size]
-                ax.axvline(run["nthreads"].iloc[0], color=colors(i), linestyle="--", label=run_name)
+                ax.axvline(run["nthreads"].iloc[0], color=colors[i], linestyle="--", label=run_name)
             ax.legend(loc="upper right")
 
         fig.savefig(output_path / "exploration.png")
