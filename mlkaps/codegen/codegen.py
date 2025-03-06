@@ -110,7 +110,9 @@ def decision_tree_to_c(configuration: ExperimentConfig, decision_tree, feature):
     # Save the output string to a file
     
     file_name = f"C_{feature}_tree.c"
+    output_path = configuration.output_directory / file_name
+        
     print(f'Decision Tree for "{feature}"saved to C_{feature}_tree.c')
-    with open(file_name, "w") as file:
+    with open(output_path , "w") as file:
         file.write(output_str)
-        print(f"Decision tree saved to {file_name}")
+        print(f"Decision tree saved to {output_path}")

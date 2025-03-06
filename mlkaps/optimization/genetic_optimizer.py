@@ -531,7 +531,8 @@ class _MonoObjectiveOptimizationMethod(_GeneticOptimizationMethod):
                 np.column_stack([pred, predictions])
 
         # Take the nearest power of 10 below the minimum prediction in absolute value
-        thresh = 10 ** np.floor(np.log10(np.min(abs(predictions))))
+        epsilon = 1e-10  # Small value to avoid log10(0)
+        thresh = 10 ** (np.floor(np.log10(np.min(abs(predictions)) + epsilon)) - 1)
 
         end = time.time()
 

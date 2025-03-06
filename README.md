@@ -1,4 +1,4 @@
-# MLKAPS 
+# MLKAPS
 
 MLKAPS (Machine Learning for Kernel Accuracy and Performance Studies) is a black-box machine learning auto-tuning tool predicting best design parameters of a computational kernel for any given input configuration.
 
