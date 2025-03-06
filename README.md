@@ -12,7 +12,8 @@ To contribute, please open a new Github PR or get in contact with the contributo
  * [Installation](#installation)
  * [Usage](#usage)
     * [Configuring an experiement](#Creating-a-configuration-file)
-    * [Launching an experiment](#launching-an-experiment)  
+    * [Launching an experiment](#launching-an-experiment) 
+ * [Citing this work](#citing-this-work) 
  * [Licence and copyright](#licence-and-copyright)  
  
 ## Description
@@ -21,8 +22,8 @@ Configuring applications to achieve maximum performance, accuracy, or  minimum e
 
 MLKAPS is conceived to generate decision trees that give the best configuration to an input problem.
 
-
 ![MLKAPS workflow chart](doc/workflow.png)
+![MLKAPS workflow chart](doc/illustrated_workflow.png)
 
 This workflow represents MLKAPS pipeline. Given a kernel taking a set of input parameters I (matrix size, length of input vector, ...) and a set of design parameters D (number of threads, number of nodes, block size, tiling...), MLKAPS will build decision trees that provide the best configuration trade-off for any input.
 
@@ -76,10 +77,16 @@ Furture work is considering python interface to handle experiement definition, e
 
 When your executable and configuration file are ready, you can run MLKAPS by using:
 ```bash
-mlkaps -o <output_directory> <config.json> 
+mlkaps <config.json> 
 ```
 
-**We highly recommend using `tmux` or `screen` to prevent your experiment stopping if you lose connection to your tuning environment**. You should also validate your setup by running a simplified version of your kernel/configuration.
+**We highly recommend:**
+* using `tmux` or `screen` to prevent your experiment stopping if you lose connection to your tuning environment. Full checkpoint resart is being tested and should be release soon. 
+* validate your setup by running a simplified version of your kernel/configuration.
+
+## Citing this work
+
+* [**MLKAPS: Machine Learning and Adaptive Sampling for HPC Kernel Auto-tuning**](https://arxiv.org/abs/2501.05811) <br> Mathys Jam (LI-PaRAD, UVSQ), Eric Petit (intel), Pablo de Oliveira Castro (LI-PaRAD, UVSQ), David Defour (LAMPS, UPVD), Greg Henry, William Jalby (LI-PaRAD, UVSQ)
 
 ## Licence and copyright
 
