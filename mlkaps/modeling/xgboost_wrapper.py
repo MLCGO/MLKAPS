@@ -1,57 +1,58 @@
-"""
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
-"""
-
 from mlkaps.modeling.model_wrapper import ModelWrapper
-from mlkaps.configuration import ExperimentConfig
 import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
 import xgboost
 
 
 class XGBoostModelWrapper(ModelWrapper, wrapper_name="xgboost"):
     """
-    Wrapper for XGBoostRegressor from xgboost. Note that this model uses sklearn API,
-    but requires categorical columns to be one-hot encoded
+    Wrapper for XGBoost regressor.
+
+    Ensures that the features are passed in the correct order and are correctly typed
     """
 
-    def __init__(self, config: ExperimentConfig, objective, inputs=None):
-        super().__init__(config, objective, inputs=inputs)
-        model_params = config["modeling"]["xgboost_regressor_parameters"]
-        self.model = xgboost.XGBRegressor(**model_params)
-        self.one_hot_encoder = None
+    def __init__(self, **hyperparameters):
+        """
+        Initialize a new XGBoost model. The model is built lazily.
+        """
+        super().__init__(**hyperparameters)
+        self.model = None
+        self.encoding = None
+        self.categorical_features = None
 
-    def _build_onehot_encoder(self, X):
-        X = X[self.ordering]
+    def _encode(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Ensures the input DataFrame has the correct dtypes
 
-        # Extract the categorical columns
-        categorical_columns = [
-            feature
-            for feature in self.ordering
-            if self.configuration.parameters_type[feature] == "Categorical"
-        ]
-
-        encoder = ColumnTransformer(
-            [("cat", OneHotEncoder(handle_unknown="ignore"), categorical_columns)],
-            remainder="passthrough",
-        )
-        self.encoder = encoder.fit(X)
-
-    def _encode(self, X) -> pd.DataFrame:
-        return self.encoder.transform(X[self.ordering])
+        :param df: The DataFrame to change the types on
+        :type df: pd.DataFrame
+        :return: A correctly typed DataFrame
+        :rtype: pd.DataFrame
+        """
+        res = df.astype(self.encoding)
+        return res
 
     def _fit(self, X, y):
-        self._build_onehot_encoder(X)
-        X = self._encode(X)
-        self.model.fit(X, y)
+        # Save the dtypes of the training dataset
+        self.encoding = {k: v for k, v in zip(X.columns, X.dtypes)}
 
-    def predict(self, X):
-        X = self._encode(X)
-        return self.model.predict(X)
+        # Identify categorical features
+        self.categorical_features = [
+            i for i, dtype in enumerate(X.dtypes) if dtype.name == 'category'
+        ]
+
+        # Lazily build the model
+        if self.model is None:
+            self.hyperparameters['enable_categorical'] = True
+            self.model = xgboost.XGBRegressor(**self.hyperparameters)
+        self.model.fit(X[self.ordering], y, eval_metric='rmse')
+
+    def predict(self, inputs: pd.DataFrame):
+        inputs = self._encode(inputs)
+        return self.model.predict(inputs[self.ordering])
 
     def set_max_thread(self, n_threads: int):
-        self.model.set_params({"n_jobs": n_threads})
+        """Restrict the maximum number of threads allowed for the XGBoost model
+
+        :param n_threads: The maximum allowed number of threads
+        :type n_threads: int
+        """
+        self.model.set_params(n_jobs=n_threads)

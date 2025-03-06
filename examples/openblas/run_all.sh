@@ -14,15 +14,15 @@ RESULT_DIR="results/$RUN_LABEL"
 {
 
     mkdir -p $OUTPUT_DIR
-    source ./venv/bin/activate
+#    source ./venv/bin/activate
 
     ./templatize.py ./config_mlkaps_template.json ./config_mlkaps.json
 
-    echo "Running exploration.py"
-    ./exploration.py $RESULT_DIR
-
     echo "Running MLKAPS"
     mlkaps ./config_mlkaps.json -o $OUTPUT_DIR
+
+    echo "Running exploration.py"
+    ./exploration.py $RESULT_DIR
 
     # Perform extra-analysis here
 } 2>&1 | tee run_all.log

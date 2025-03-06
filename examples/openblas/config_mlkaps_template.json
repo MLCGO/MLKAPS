@@ -33,8 +33,8 @@
       "sampler": "ga_adaptive",
       "sampler_parameters": {
         "n_samples": 1000,
-        "n_iterations": 10,
-        "bootstrap_ratio": 0.20,
+        "n_iterations": 20,
+        "bootstrap_ratio": 0.15,
         "initial_ga_ratio": 0.2,
         "final_ga_ratio": 0.8
       }
@@ -58,16 +58,16 @@
           "sampling_method": "grid"
         },
         "sample_count": {
-          "vecsize": 256
+          "vecsize": 1024
         }
       },
       "optimization_method": "genetic",
       "optimization_parameters": {
         "evolution": {
-          "pop_size": 100
+          "pop_size": 80
         },
         "termination": {
-          "time": "00:00:10"
+          "time": "00:00:15"
         },
         "selection_method": "mono",
         "early_stopping": true

@@ -19,7 +19,10 @@ dependencies = [
     "optuna",
     "psutil",
     "flit-core",
-    "tk"
+    "tk",
+    "sphinx-autoapi",
+    "sphinx_rtd_theme"
+
 ]
 
 

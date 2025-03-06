@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include <openblas/cblas.h>
+#include <cblas.h>
 #include <vector>
 #include <chrono>
 #include <omp.h>

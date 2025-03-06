@@ -1,8 +1,11 @@
 {
   "EXPERIMENT": {
-    "objectives": [
-      "r"
-    ]
+    "objectives": {
+      "r":{
+        "direction":"minimize",
+        "bound":3 
+      }
+    }
   },
   "PARAMETERS": {
     "KERNEL_INPUTS": {
@@ -36,6 +39,7 @@
     "runner": "executable",
     "runner_parameters": {
       "kernel": "main.py",
+      "timeout": 5,
       "parameters_order": [
         "x",
         "y",

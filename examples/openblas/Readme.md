@@ -1,7 +1,7 @@
-# Introduction
+# OpenBlas
 
 This tutorial showcases how a very simple MLKAPS experiment is setup, and will guide you through all the steps to make your own.
-The goal is to tune the number of threads for a simple outer product using OpenBLAS OpenMP.
+The goal is to tune the number of threads for a simple outer product `dger` using OpenBLAS OpenMP.
 
 The parameters are the following:
 
@@ -25,6 +25,12 @@ You must have a C++ compiler with OpenMP support, and an OpenMP-enabled version 
 sudo dnf install openblas-devel
 ```
 
+**Ubuntu**
+
+```bash
+sudo apt install libopenblas-dev
+```
+
 ### Building the kernel
 
 To validate your setup, compile the kernel by using:
@@ -41,7 +47,7 @@ And executing the kernel on a small test:
 # <output_time>
 ```
 
-### Setting up the Python environment
+### [OPTIONAL] Setting up the Python environment and MLKAPS
 
 Ensure you have a recent version of python 3 installed, along with pip and `virtualenv`
 
@@ -51,8 +57,9 @@ sudo dnf install python3 python3-pip python3-virtualenv
 ```
 
 Then, install all the required packages along with MLKAPS using:
-```sh
-./setup_all.sh
+```bash
+export MLKAPS_PATH=/path/to/mlkaps
+./_setup_all.sh
 ```
 
 ### Stabilizing your environment

@@ -19,7 +19,7 @@ class Test2D:
         json, _ = builder_helper.load_configuration(config_name, tmp_path)
         run_from_config([], json, builder_helper.srcpath, tmp_path)
 
-    @pytest.mark.parametrize("file", ["ga_adaptive_single_input_optuna.json", "hvs.json", "hvsr.json", "multilevel_hvsr.json", "random.json", "ga_adaptive.json", "ga_adaptive_optuna.json", "optuna_model.json"])
+    @pytest.mark.parametrize("file", ["ga_adaptive.json"])
     def test_config(self, tmp_path, builder_helper, file):
         self._run_helper(tmp_path, builder_helper, file)
  

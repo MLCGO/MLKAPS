@@ -11,10 +11,9 @@ To contribute, please open a new Github PR or get in contact with the contributo
  * [Description](#description)
  * [Installation](#installation)
  * [Usage](#usage)
-    * [Configuring an experiement](#creating-a-configuration-file)
+    * [Configuring an experiement](#Creating-a-configuration-file)
     * [Launching an experiment](#launching-an-experiment)  
  * [Licence and copyright](#licence-and-copyright)  
- * [Cite this work](#cite-this-work)
  
 ## Description
 
@@ -25,13 +24,13 @@ MLKAPS is conceived to generate decision trees that give the best configuration 
 
 ![MLKAPS workflow chart](doc/workflow.png)
 
-This workflow represents MLKAPS pipeline. Given a kernel taking a set of input parameters I (matrix size, length of input vector, ...) and a set of design parameters D (number of threads, number of nodes, block size, tiling...), and an objective function Ob(i),  MLKAPS goal is to find a function F such that F(i)=d_min with d_min=argmin(Ob(i)), i.e. for each input in I return the design parameters in D that minimize the objective(s) Ob. Current releas focus on F being a decision tree that provide the best configuration trade-off for any input to easily translate into code to be used in high-performance libraries. 
+This workflow represents MLKAPS pipeline. Given a kernel taking a set of input parameters I (matrix size, length of input vector, ...) and a set of design parameters D (number of threads, number of nodes, block size, tiling...), MLKAPS will build decision trees that provide the best configuration trade-off for any input.
 
 The main steps of the pipeline for software kernel optimization are:
-1. **Input configuration**: The users provides a JSON configuration files describing the application to tune, including the input and design parameters, and MLKAPS workflow configuration.
-2. **Sampling**: MLKAPS samples the input and design parameters space using a variety of sampling algorithm, including adaptive sampling.
-4. **Surrogate modeling**: MLKAPS builds regression models capable of cost-effectively predict the different objectives described in the configuration.
-5. **Optimizing**: MLKAPS select pointss on the input space, and find the optimal configuration for each point.
+1. **Input configuration**: The users provides a JSON configuration files describing the application to tune, including the input and design parameters.
+2. **Sampling**: MLKAPS samples the parameters space using a variety of sampling algorithm, including adaptive sampling.
+4. **Surrogate modeling**: MLKAPS builds a regression model capable of cost-effectively predict the different objectives described in the configuration.
+5. **Optimizing**: MLKAPS builds a grid on the input space, and find the optimal configuration for each point of the grid.
 6. **Building decision tree**: MLKAPS generate decision trees of given depth that are fitted on the optimization grid.
 7. **(Experimental) Generating code**: the decision trees are exported to C code to be used in user application.
 
@@ -88,11 +87,3 @@ mlkaps -o <output_directory> <config.json>
 * Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
 * Copyright (C) 2024-  MLKAPS contributors
 * SPDX-License-Identifier: BSD-3-Clause
-
-## Cite this work
-
-[MLKAPS: Machine Learning and Adaptive Sampling for HPC Kernel Auto-tuning](https://arxiv.org/abs/2501.05811)
-
-Mathys Jam (LI-PaRAD, UVSQ), Eric Petit (Intel), Pablo de Oliveira Castro (LI-PaRAD, UVSQ), David Defour (LAMPS, UPVD), Greg Henry, William Jalby (LI-PaRAD, UVSQ)
-
-

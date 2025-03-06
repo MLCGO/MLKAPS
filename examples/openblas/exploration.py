@@ -23,11 +23,24 @@ design_parameters = ["nthreads"]
 kernel_parameters = ["vecsize", "nthreads"]
 
 # == Build an MLKAPS runner so we can evaluate new samples ==
-harness = MonoSubprocessHarness(["performance"], 
-                                "./openblas_kernel/build/openblas_kernel",
-                                #"./dummy.sh",
-                                kernel_parameters,
-                                timeout=30)
+#harness = MonoSubprocessHarness(["performance"], 
+#                                "./openblas_kernel/build/openblas_kernel",
+#                                #"./dummy.sh",
+#                                kernel_parameters,
+#                                timeout=30)
+
+# Define the objectives bounds
+objectives_bounds = {"performance": 3}
+
+# == Build an MLKAPS runner so we can evaluate new samples ==
+harness = MonoSubprocessHarness(
+    objectives=["performance"], 
+    objectives_bounds= objectives_bounds,
+    executable_path="./openblas_kernel/build/openblas_kernel",
+    arguments_order=kernel_parameters,
+    timeout=30
+)
+
 resolver = FailedRunResolver.from_name("discard")
 runner = MonoKernelExecutor(harness, resolver, progress_bar=True)
 
@@ -121,6 +134,7 @@ def main():
     with plt.rc_context(rc={"font.size": 10}):
         # We want one lineplot per vector size
         fig, axs = plt.subplots(4, 4, figsize=(16, 16), layout="constrained")
+        colors = matplotlib.colormaps.get_cmap('tab10', len(runs["run"].unique()))  # Use the updated colormap function
         for ax, size in zip(axs.flatten(), np.unique(samples["vecsize"])):
             subset = samples[samples["vecsize"] == size]
             ax.plot(subset["nthreads"], subset["performance"], marker="o")
@@ -128,10 +142,10 @@ def main():
             ax.set_xlabel("Number of threads")
             ax.set_ylabel("Execution Time (s)")
 
-            for run_name in runs["run"].unique():
+            for i, run_name in enumerate(runs["run"].unique()):
                 run = runs[runs["run"] == run_name]
                 run = run[run["vecsize"] == size]
-                ax.axvline(run["nthreads"].iloc[0], color="red", linestyle="--", label=run_name)
+                ax.axvline(run["nthreads"].iloc[0], color=colors(i), linestyle="--", label=run_name)
             ax.legend(loc="upper right")
 
         fig.savefig(output_path / "exploration.png")

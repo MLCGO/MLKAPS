@@ -29,8 +29,8 @@ class _ProgressBarWrapper:
         # Else if the progress bar is a boolean, we create a new progress bar
         if progress_bar:
             self._progress_bar = tqdm(total=nsamples, desc="Sampling", leave=None)
-            self._closure = self.progress_bar.close
-            self._update = self.progress_bar.update
+            self._closure = self._progress_bar.close
+            self._update = self._progress_bar.update
         else:
             self._progress_bar = None
             self._closure = None
