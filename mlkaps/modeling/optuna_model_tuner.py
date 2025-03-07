@@ -93,10 +93,16 @@ class OptunaModelTuner:
             model.fit(self.inputs.iloc[train_idx], self.labels.iloc[train_idx])
             predictions = model.predict(self.inputs.iloc[test_idx])
 
+            # In some weird cases, especially with low number of samples
+            # LightGBM can return NaN predictions
+            if np.isnan(predictions).any():
+                continue
+
             scores.append(self.metric(self.labels.iloc[test_idx], predictions))
             midway_score = np.mean(scores)
 
             yield scores, midway_score
+        yield scores, np.mean(scores)
 
     def _objective(self, trial: optuna.trial) -> float:
         """Entry point for the optuna study
@@ -115,7 +121,15 @@ class OptunaModelTuner:
             if trial.should_prune():
                 raise optuna.TrialPruned()
 
-        return np.mean(scores)
+        # If the model only returned NaN predictions, return infinity
+        if len(scores) == 0:
+            return np.inf
+
+        # If any of the scores is NaN, return infinity
+        res = np.mean(scores)
+        if np.isnan(res):
+            return np.inf
+        return res
 
     def run(self, time_budget: int = 60, n_trials: int = None) -> tuple[ModelWrapper, dict]:
         """
