@@ -8,7 +8,8 @@
 * All contributions must provide:
   * Sphinx documentation for new functions and modules.
   * Author(s) must provide a  tests covering all  new features.
-  * Integration tests are expensive. When possible, prefer unit tests or keep the test cases minimal.
+  * Test cases for new features or bug patches. Integration tests can be expensive, prefer unit tests or minimal test cases.
+  Doctests are another options.
 * To get a PR accepted:
   * PR description must describe new contributions, bug fixes, and enhancements. In addition, it can describe additional and/or missing tasks to be completed to encourage others to contribute to your PR.
   * Ask 2 reviewers when ready. If you do not know who to assign, assign @titeup and comment that you would like to get your PR reviewed.
@@ -20,7 +21,7 @@
 * This project is primarily in Python; we prefer to avoid other scripting languages or compiled code as much as possible.
 * Coding style:
   * All Python code must adhere to PEP 8 guidelines.
-    * Use `pylint` to check for linting issues before submitting a PR.
+    * Use `flake8` to check for linting issues before submitting a PR.
     * Use `black` to format your code before submitting a PR.
   * All C and C++ code must adhere to the project's coding standards.
     * Use `clang-tidy` and `clang-format` to check for linting issues and format your code before submitting a PR.
