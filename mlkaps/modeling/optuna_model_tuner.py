@@ -102,7 +102,6 @@ class OptunaModelTuner:
             midway_score = np.mean(scores)
 
             yield scores, midway_score
-        yield scores, np.mean(scores)
 
     def _objective(self, trial: optuna.trial) -> float:
         """Entry point for the optuna study
@@ -116,13 +115,14 @@ class OptunaModelTuner:
         parameters = self._get_hyperparameters(trial)
         model = self._build_model(parameters)
 
+        scores = None
         for scores, midway_score in self._kfold_evaluate(model):
             trial.report(midway_score, len(scores))
             if trial.should_prune():
                 raise optuna.TrialPruned()
 
         # If the model only returned NaN predictions, return infinity
-        if len(scores) == 0:
+        if scores is None or len(scores) == 0:
             return np.inf
 
         # If any of the scores is NaN, return infinity
