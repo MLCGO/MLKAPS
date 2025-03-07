@@ -1,25 +1,32 @@
-from mlkaps.modeling.model_wrapper import ModelWrapper
+"""
+Wrapper for XGBoost regressor.
+
+Ensures that the features are passed in the correct order and are correctly typed
+
+>>> model = XGBoostModelWrapper(max_depth=0, min_child_weight=1, n_estimators=1)
+>>> df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [1, 2, 3, 4]})
+>>> model.fit(df[["x"]], df["y"])
+>>> model.predict(df[["x"]]).shape
+(4,)
+"""
+
 import pandas as pd
 import xgboost
-
+from mlkaps.modeling.model_wrapper import ModelWrapper
 
 class XGBoostModelWrapper(ModelWrapper, wrapper_name="xgboost"):
     """
     Wrapper for XGBoost regressor.
 
     Ensures that the features are passed in the correct order and are correctly typed
-
-    >>> model = XGBoostModelWrapper(max_depth=0, min_child_weight=1, n_estimators=1)
-    >>> df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [1, 2, 3, 4]})
-    >>> model.fit(df[["x"]], df["y"])
-    >>> model.predict(df[["x"]]).shape
-    (4,)
     """
 
     def __init__(self, **hyperparameters):
         """
         Initialize a new XGBoost model. The model is built lazily.
         """
+        # Filter out unused parameters to silence warnings
+        self.hyperparameters = {k: v for k, v in hyperparameters.items() if k != "verbose"}
         super().__init__(**hyperparameters)
         self.model = None
         self.encoding = None
@@ -52,3 +59,11 @@ class XGBoostModelWrapper(ModelWrapper, wrapper_name="xgboost"):
     def predict(self, inputs: pd.DataFrame):
         inputs = self._encode(inputs)
         return self.model.predict(inputs[self.ordering])
+
+    def set_max_thread(self, n_threads: int):
+        """Restrict the maximum number of threads allowed for the XGBoost model
+
+        :param n_threads: The maximum allowed number of threads
+        :type n_threads: int
+        """
+        self.model.set_params({"n_jobs": n_threads})

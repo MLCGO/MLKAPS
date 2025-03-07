@@ -29,6 +29,7 @@ class Test2D:
             "multilevel_hvsr.json",
             "random.json",
             "ga_adaptive.json",
+            "ga_adaptive_xgboost.json",
             "ga_adaptive_optuna.json",
             "optuna_model.json",
         ],
