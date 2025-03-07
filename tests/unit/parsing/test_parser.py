@@ -73,9 +73,7 @@ class ParametersTestCase(unittest.TestCase):
         self.assertRaises(Exception, ExperimentConfig.from_dict, res, path)
 
     def test_throw_on_invalid_numerical_parameter_value(self):
-        res, path = _fetch_dummy_json(
-            "parameters/invalid_numerical_parameter_value.json"
-        )
+        res, path = _fetch_dummy_json("parameters/invalid_numerical_parameter_value.json")
         if res is None:
             self.skipTest("Missing dummy json file")
 

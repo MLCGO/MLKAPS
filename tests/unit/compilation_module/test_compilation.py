@@ -54,9 +54,7 @@ class ParsingCompilationTestCase(unittest.TestCase):
         config = ExperimentConfig.from_dict(res, path)
         self.assertIsNotNone(config)
         self.assertIsNotNone(config.compilation_configuration)
-        self.assertEqual(
-            config.compilation_configuration.get_static_flags(), ["-O3", "-g"]
-        )
+        self.assertEqual(config.compilation_configuration.get_static_flags(), ["-O3", "-g"])
 
     def test_can_parse_predefined_sets(self):
         register_predefined_flag_set(

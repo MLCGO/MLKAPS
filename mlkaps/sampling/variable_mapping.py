@@ -15,7 +15,8 @@ def _check_variables_type(variables):
     for variable, var_type in variables.items():
         if var_type not in ["Categorical", "Boolean", "float", "int"]:
             raise ValueError(
-                f"Unrecognized variable type for variable {variable}: {var_type}. Type must be one of ['Categorical', 'Boolean', 'float', 'int']"
+                f"Unrecognized variable type for variable {variable}: {var_type}."
+                "Type must be one of ['Categorical', 'Boolean', 'float', 'int']"
             )
 
 

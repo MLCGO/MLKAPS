@@ -6,14 +6,15 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 
 import pytest
-import tempfile
 from mlkaps.sampling.adaptive.multilevel_hvs import MultilevelHVS
 import pandas as pd
 
 
 def _run_simple_multilevel_hvs(features_types, features_values, levels):
     sampler = MultilevelHVS(levels, features_types, features_values)
-    f = lambda df: pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+
+    def f(df):
+        pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
 
     data = sampler.sample(60, None, f)
     data = sampler.sample(10, data, f)
@@ -74,7 +75,9 @@ class TestMultilevelHVS:
                     return 10
 
         sampler = MultilevelHVS(levels, features_types, features_values)
-        f = lambda df: pd.concat([df, df.apply(eval_features, axis=1)], axis=1)
+
+        def f(df):
+            pd.concat([df, df.apply(eval_features, axis=1)], axis=1)
 
         data = sampler.sample(30, None, f)
         import matplotlib.pyplot as plt

@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 
 import matplotlib
+
 matplotlib.use("Agg")
 import builder_helper as helper  # noqa: E402
 import pytest  # noqa: E402

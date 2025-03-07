@@ -365,7 +365,7 @@ class ErrorConvergenceStoppingCriterion(StoppingCriterion):
 
         # We consider the maximum variance across all objectives as the convergence measurement
         max_convergence = variances.max()
-        return bool(max_convergence < self.threshold) # We need to convert to bool to avoid returning a numpy.bool_
+        return bool(max_convergence < self.threshold)  # We need to convert to bool to avoid returning a numpy.bool_
 
     def max_samples(self, data: pd.DataFrame | None) -> int:
         """

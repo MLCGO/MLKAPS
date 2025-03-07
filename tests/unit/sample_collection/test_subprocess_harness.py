@@ -10,7 +10,6 @@ from mlkaps.sample_collection.subprocess_harness import (
     MonoSubprocessHarness,
 )
 import time
-import math
 import pathlib
 import pytest
 import subprocess
@@ -49,7 +48,7 @@ def check_if_process_active(pid: int or str) -> bool:
     assert os.name == "nt"
     try:
         process = psutil.Process(pid)
-    except psutil.Error as error:  # includes NoSuchProcess error
+    except psutil.Error:  # includes NoSuchProcess error
         return False
     if psutil.pid_exists(pid) and process.status() not in (
         psutil.STATUS_DEAD,
@@ -73,7 +72,7 @@ class TestProcessCleanupHandler:
 
         assert res.exitcode == 0
         assert check_returned_arguments(res.arguments, arguments)
-        assert res.timed_out == False
+        assert res.timed_out is False
         assert res.stdout == "Hello, World!\n5"
 
     def test_handles_unkown_file(self):
@@ -115,7 +114,7 @@ class TestProcessCleanupHandler:
         else:
             assert res.exitcode == -15
         assert check_returned_arguments(res.arguments, arguments)
-        assert res.timed_out == True
+        assert res.timed_out is True
 
         # Check pid is not running anymore
         if os.name == "nt":
@@ -139,7 +138,7 @@ class TestMonoSubprocessRunner:
 
         assert res.data == {"r": 5.0}
         assert res.error is None
-        assert res.timed_out == False
+        assert res.timed_out is False
 
     @temporary_env
     def test_can_sample_multiple(self):
@@ -157,7 +156,7 @@ class TestMonoSubprocessRunner:
 
         assert res.data == {"r": 5.0, "r2": 2.5}
         assert res.error is None
-        assert res.timed_out == False
+        assert res.timed_out is False
 
     @temporary_env
     def test_detect_invalid_return(self):
@@ -173,7 +172,7 @@ class TestMonoSubprocessRunner:
 
         res = runner({"id": 5})
         assert res.error is not None
-        assert res.timed_out == False
+        assert res.timed_out is False
 
         os.environ["N_OUTPUT"] = "1"
 
@@ -186,7 +185,7 @@ class TestMonoSubprocessRunner:
 
         res = runner({"id": 5})
         assert res.error is not None
-        assert res.timed_out == False
+        assert res.timed_out is False
 
         os.environ["N_OUTPUT"] = "0"
 
@@ -199,15 +198,14 @@ class TestMonoSubprocessRunner:
 
         res = runner({"id": 5})
         assert res.error is not None
-        assert res.timed_out == False
+        assert res.timed_out is False
 
     def test_handles_invalid_kernel(self):
 
         runner = MonoSubprocessHarness(
             objectives=["r"],
             objectives_bounds={"r": 42},
-            executable_path=pathlib.Path(__file__).parent
-            / "this_kernel_doesnt_exist.py",
+            executable_path=pathlib.Path(__file__).parent / "this_kernel_doesnt_exist.py",
             arguments_order=["id"],
         )
 

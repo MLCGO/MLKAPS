@@ -5,13 +5,8 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
-from numpy import cos, sin, sqrt, exp, pi, e, arange, meshgrid, log
-
 from mlkaps.sampling.adaptive import HVSampler
 
 
@@ -19,7 +14,10 @@ class TestHVSampler:
 
     def test_can_run_1d(self):
         features = {"a": [0, 5]}
-        f = lambda df: pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+
+        def f(df):
+            pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+
         sampler = HVSampler({"a": "float"}, features)
         data = sampler.sample(100, None, f)
         data = sampler.sample(200, data, f)
@@ -27,9 +25,10 @@ class TestHVSampler:
 
     def test_can_run_2d(self):
         features = {"a": [0, 5], "b": [0, 5]}
-        f = lambda df: pd.concat(
-            [df, df.apply(lambda x: x.iloc[0] + x.iloc[1], axis=1)], axis=1
-        )
+
+        def f(df):
+            pd.concat([df, df.apply(lambda x: x.iloc[0] + x.iloc[1], axis=1)], axis=1)
+
         sampler = HVSampler({"a": "float", "b": "float"}, features)
         data = sampler.sample(100, None, f)
         data = sampler.sample(200, data, f)
@@ -40,7 +39,10 @@ class TestHVSampler:
         # (We may return more samples than requested, for examples if the bootstrap samples >
         # n_samples)
         features = {"a": [0, 5]}
-        f = lambda df: pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+
+        def f(df):
+            pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+
         sampler = HVSampler({"a": "float"}, features)
         # Request a single sample, but use bootstrap
         data = sampler.sample(1, None, f)
@@ -48,8 +50,11 @@ class TestHVSampler:
 
     def test_correctly_appends_to_data(self):
         features = {"a": [0, 100]}
+
         # Return 0 if x < 50, else return x
-        f = lambda df: pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+        def f(df):
+            pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+
         sampler = HVSampler({"a": "float"}, features)
         # Request a single sample, but use bootstrap
         data = None
@@ -65,10 +70,11 @@ class TestHVSampler:
 
     def test_correctly_samples_high_variance_space(self):
         features = {"a": [0, 100]}
+
         # Return 0 if x < 50, else return x
-        f = lambda df: pd.concat(
-            [df, df.apply(lambda x: 0 if x.iloc[0] < 50 else x.iloc[0], axis=1)], axis=1
-        )
+        def f(df):
+            pd.concat([df, df.apply(lambda x: 0 if x.iloc[0] < 50 else x.iloc[0], axis=1)], axis=1)
+
         sampler = HVSampler({"a": "float"}, features)
         # Request a single sample, but use bootstrap
         data = None

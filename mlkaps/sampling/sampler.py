@@ -63,7 +63,8 @@ class Sampler:
 
     def _raise_if_variables_not_set(self):
         """
-        :raise SamplerError: Raise an exception if the variables are not set, or if the variables are empty (after masking for example).
+        :raise SamplerError: Raise an exception if the variables are not set,
+        or if the variables are empty (after masking for example).
         """
 
         if self.variables_values is None or self.variables_types is None:

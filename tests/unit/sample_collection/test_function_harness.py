@@ -12,9 +12,6 @@ import math
 import pathlib
 import pytest
 import os
-import pickle
-import types
-import sys
 
 
 class TestFunctionPath:
@@ -36,9 +33,7 @@ class TestFunctionPath:
 
         assert path.stem == "my_sqrt"
         assert path.parents == str(pathlib.Path(__file__).parent / "dummy_module.py")
-        assert path.path == str(
-            pathlib.Path(__file__).parent / "dummy_module.py:my_sqrt"
-        )
+        assert path.path == str(pathlib.Path(__file__).parent / "dummy_module.py:my_sqrt")
         f = path.to_function().get_callable_function()
         assert f({"id": 9})["r"] == 3.0
 
@@ -64,9 +59,7 @@ class TestFunctionPath:
 
         assert path.stem == "return_id"
         assert path.parents == str(pathlib.Path(__file__).parent / "dummy_module.py")
-        assert path.path == str(
-            pathlib.Path(__file__).parent / "dummy_module.py:return_id"
-        )
+        assert path.path == str(pathlib.Path(__file__).parent / "dummy_module.py:return_id")
         f = path.to_function().get_callable_function()
         assert f({"id": 2})["r"] == 2
 
@@ -82,14 +75,10 @@ class TestFunctionPath:
         # loading the module until we understand if we need to create a sub-process.
         if os.name != "nt":
             with pytest.raises(AttributeError):
-                FunctionPath(
-                    pathlib.Path(__file__).parent / "dummy_module.py:no_such_function"
-                ).to_function()
+                FunctionPath(pathlib.Path(__file__).parent / "dummy_module.py:no_such_function").to_function()
 
         with pytest.raises(ValueError):
-            FunctionPath(
-                pathlib.Path(__file__).parent / "dummy_module.py:my_sqrt:here"
-            ).to_function()
+            FunctionPath(pathlib.Path(__file__).parent / "dummy_module.py:my_sqrt:here").to_function()
 
     def test_detect_type(self):
         path = FunctionPath("..my_module.math")
@@ -113,9 +102,7 @@ class TestFunctionPath:
         path = FunctionPath(pathlib.Path("my_module.py:math").resolve())
         assert path.is_source() and not path.is_relative() and not path.is_module()
 
-        assert (
-            FunctionPath("math.sqrt").is_module() and FunctionPath("math.sqrt").exists()
-        )
+        assert FunctionPath("math.sqrt").is_module() and FunctionPath("math.sqrt").exists()
 
     def test_detect_type_on_invalid_path(self):
         path = FunctionPath("$$$$$.:math:invalid")
@@ -156,8 +143,8 @@ class TestMonoFunctionRunner:
             lambda x: [x["id"], -x["id"]],
         ]
 
-        for l in lambdas:
-            runner = MonoFunctionHarness(l, ["r"])
+        for funcs in lambdas:
+            runner = MonoFunctionHarness(funcs, ["r"])
             test_all_none(runner)
 
     # Running with a timeout will require a subprocess.  On Windows, the function
