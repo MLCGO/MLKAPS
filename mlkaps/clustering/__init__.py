@@ -5,8 +5,14 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-from .clustering_algorithm import generate_clustering_models  # noqa
+from .clustering_algorithm import generate_clustering_models
 from .clustering_visualization import (
     plot_all_decisions_maps,
     plot_all_decision_tree,
-)  # noqa
+)
+
+__all__ = [
+    "generate_clustering_models",
+    "plot_all_decisions_maps",
+    "plot_all_decision_tree",
+]

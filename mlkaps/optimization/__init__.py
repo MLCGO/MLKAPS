@@ -5,4 +5,9 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-from .genetic_optimizer import GeneticOptimizerConfig, GeneticOptimizer  # noqa
+from .genetic_optimizer import GeneticOptimizerConfig, GeneticOptimizer
+
+__all__ = [
+    "GeneticOptimizerConfig",
+    "GeneticOptimizer",
+]
