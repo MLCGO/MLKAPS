@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import pytest
@@ -51,7 +51,6 @@ class TestMultilevelHVS:
         _run_simple_multilevel_hvs(features_types, features_values, levels)
 
     def test_validate_multilevel_hvs(self, tmp_path):
-
 
         features_types = {"x": "int", "optim": "int"}
         features_values = {"x": [0, 300], "optim": [0, 200]}

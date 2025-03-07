@@ -13,9 +13,9 @@ def main(cdict: dict | None = None):
         y = float(sys.argv[2])
         b = float(sys.argv[3])
     else:
-        x = cdict['x']
-        y = cdict['y']
-        b = cdict['b']
+        x = cdict["x"]
+        y = cdict["y"]
+        b = cdict["b"]
 
     res = b * sin(x) ** 2 * x * cos(y) ** 2 * 1 / (10 + x * y)
 

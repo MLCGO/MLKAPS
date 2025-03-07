@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 from mlkaps.sample_collection.function_harness import MonoFunctionHarness
@@ -13,8 +13,9 @@ import pathlib
 import pytest
 import os
 import pickle
-import types 
+import types
 import sys
+
 
 class TestFunctionPath:
 
@@ -24,23 +25,21 @@ class TestFunctionPath:
         assert path.stem == "sqrt"
         assert path.parents == "math"
         assert path.path == "math.sqrt"
-       
+
         f = path.to_function().get_callable_function()
-        assert(f == math.sqrt)   
-        assert f(9) == 3.0  
-  
+        assert f == math.sqrt
+        assert f(9) == 3.0
+
     def test_can_load_from_file(self):
 
         path = FunctionPath(pathlib.Path(__file__).parent / "dummy_module.py:my_sqrt")
 
         assert path.stem == "my_sqrt"
-        assert path.parents == str(
-            pathlib.Path(__file__).parent / "dummy_module.py"
-        )
+        assert path.parents == str(pathlib.Path(__file__).parent / "dummy_module.py")
         assert path.path == str(
             pathlib.Path(__file__).parent / "dummy_module.py:my_sqrt"
         )
-        f= path.to_function().get_callable_function()
+        f = path.to_function().get_callable_function()
         assert f({"id": 9})["r"] == 3.0
 
     def test_can_change_function_name(self):
@@ -55,7 +54,7 @@ class TestFunctionPath:
         assert path.path == "math.exp"
         f = path.to_function().get_callable_function()
         assert f(2) == math.exp(2)
-    
+
     def test_can_change_function_name_from_file(self):
 
         path = FunctionPath(pathlib.Path(__file__).parent / "dummy_module.py:my_sqrt")
@@ -64,9 +63,7 @@ class TestFunctionPath:
         path.stem = "return_id"
 
         assert path.stem == "return_id"
-        assert path.parents == str(
-            pathlib.Path(__file__).parent / "dummy_module.py"
-        )
+        assert path.parents == str(pathlib.Path(__file__).parent / "dummy_module.py")
         assert path.path == str(
             pathlib.Path(__file__).parent / "dummy_module.py:return_id"
         )
@@ -94,7 +91,6 @@ class TestFunctionPath:
                 pathlib.Path(__file__).parent / "dummy_module.py:my_sqrt:here"
             ).to_function()
 
-
     def test_detect_type(self):
         path = FunctionPath("..my_module.math")
         assert path.is_module() and path.is_relative() and not path.is_source()
@@ -117,7 +113,9 @@ class TestFunctionPath:
         path = FunctionPath(pathlib.Path("my_module.py:math").resolve())
         assert path.is_source() and not path.is_relative() and not path.is_module()
 
-        assert FunctionPath("math.sqrt").is_module() and FunctionPath("math.sqrt").exists()
+        assert (
+            FunctionPath("math.sqrt").is_module() and FunctionPath("math.sqrt").exists()
+        )
 
     def test_detect_type_on_invalid_path(self):
         path = FunctionPath("$$$$$.:math:invalid")
@@ -127,8 +125,9 @@ class TestFunctionPath:
 # Running with a timeout will require a subprocess.  On Windows, the function
 # must be pickleable.  Only functions declared at the top level are pickleable.
 def f2(x):
-     return {"r": x["id"]}
-    
+    return {"r": x["id"]}
+
+
 class TestMonoFunctionRunner:
 
     def test_can_sample(self):
@@ -161,7 +160,6 @@ class TestMonoFunctionRunner:
             runner = MonoFunctionHarness(l, ["r"])
             test_all_none(runner)
 
-  
     # Running with a timeout will require a subprocess.  On Windows, the function
     # must be pickleable.  Only functions declared at the top level are pickleable.
     def functor(self, sample):
@@ -169,12 +167,12 @@ class TestMonoFunctionRunner:
         if sample["id"] < 5:
             time.sleep(2)
         return {"r": sample["id"]}
-    
+
     def test_can_timeout(self):
         if os.name == "nt":
             t_out = 2.0
         else:
-            t_out = 0.1     
+            t_out = 0.1
 
         runner = MonoFunctionHarness(self.functor, ["r"], timeout=t_out)
         samples = [{"id": 1}, {"id": 2}, {"id": 3}, {"id": 6}, {"id": 7}]
@@ -188,7 +186,7 @@ class TestMonoFunctionRunner:
             if s["id"] < 5:
                 assert result.error is not None
                 assert result.timed_out
-                assert end - begin < 2*t_out
+                assert end - begin < 2 * t_out
             else:
                 # Otherwise, the runner should return the result
                 assert result.data == {"r": s["id"]}
@@ -200,7 +198,7 @@ class TestMonoFunctionRunner:
         if os.name == "nt":
             t_out = 2.0
         else:
-            t_out = 0.1     
+            t_out = 0.1
 
         path = pathlib.Path(__file__).parent / "dummy_kernel_simple.py:functor"
         runner = MonoFunctionHarness(path, ["r"], timeout=t_out)
@@ -212,5 +210,3 @@ class TestMonoFunctionRunner:
             print("results", result)
             assert result.data == {"r": s["id"]}
             assert result.error is None
-
-     

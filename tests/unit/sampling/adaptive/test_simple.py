@@ -1,6 +1,7 @@
 import pytest
 import matplotlib.pyplot as plt
 
+
 class TestTmpPath:
     def test_validate_tmp_path(self, tmp_path):
         # Use tmp_path for temporary file/directory creation
@@ -16,6 +17,7 @@ class TestTmpPath:
 
         assert temp_file.read_text() == "This is a test file."
         assert (temp_dir / "test.png").exists()
+
 
 # Example usage
 if __name__ == "__main__":

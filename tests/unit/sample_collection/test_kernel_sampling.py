@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 from mlkaps.sample_collection.mono_kernel_executor import (
@@ -48,15 +48,14 @@ class TestMonoKernelSampler:
 
         sampler = _build_discard_sampler(functor=fail_on_even)
 
-
-        # On Windows astype(int) converts int64 to int32 
+        # On Windows astype(int) converts int64 to int32
         # This is a Windows "feature" https://github.com/pandas-dev/pandas/issues/44925
         # We need to add astype(int) to the assert below
         samples = pd.DataFrame({"id": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
         results = sampler(samples).astype(int)
 
         assert results.equals(
-             pd.DataFrame({"id": [1, 3, 5, 7, 9], "r": [1, 3, 5, 7, 9]}).astype(int)
+            pd.DataFrame({"id": [1, 3, 5, 7, 9], "r": [1, 3, 5, 7, 9]}).astype(int)
         )
 
     def test_handles_full_failure(self):

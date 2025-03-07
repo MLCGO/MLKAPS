@@ -2,27 +2,29 @@
 import numpy as np
 import pandas as pd
 import psutil
-from mlkaps.sample_collection import MonoSubprocessHarness, MonoKernelExecutor, FailedRunResolver
+from mlkaps.sample_collection import (
+    MonoSubprocessHarness,
+    MonoKernelExecutor,
+    FailedRunResolver,
+)
 import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt # noqa: E402
-from pathlib import Path
-import sys
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+from pathlib import Path  # noqa: E402
+import sys  # noqa: E402
 
 # Juste redefine the variables used in the experiment
 ncores = len(psutil.Process().cpu_affinity())
 print(psutil.Process().cpu_affinity())
-feature_values = {
-    "vecsize": [256, 20000],
-    "nthreads": [1, ncores]
-}
+feature_values = {"vecsize": [256, 20000], "nthreads": [1, ncores]}
 input_features = ["vecsize"]
 design_parameters = ["nthreads"]
 # This should match the order expected by the kernel
 kernel_parameters = ["vecsize", "nthreads"]
 
 # == Build an MLKAPS runner so we can evaluate new samples ==
-#harness = MonoSubprocessHarness(["performance"], 
+# harness = MonoSubprocessHarness(["performance"],
 #                                "./openblas_kernel/build/openblas_kernel",
 #                                #"./dummy.sh",
 #                                kernel_parameters,
@@ -33,15 +35,16 @@ objectives_bounds = {"performance": 3}
 
 # == Build an MLKAPS runner so we can evaluate new samples ==
 harness = MonoSubprocessHarness(
-    objectives=["performance"], 
-    objectives_bounds= objectives_bounds,
+    objectives=["performance"],
+    objectives_bounds=objectives_bounds,
     executable_path="./openblas_kernel/build/openblas_kernel",
     arguments_order=kernel_parameters,
-    timeout=30
+    timeout=30,
 )
 
 resolver = FailedRunResolver.from_name("discard")
 runner = MonoKernelExecutor(harness, resolver, progress_bar=True)
+
 
 class TreeWrapper:
 
@@ -55,6 +58,7 @@ class TreeWrapper:
         self.trees = {}
 
         from sklearn.tree import DecisionTreeRegressor
+
         for col in y.columns:
             tree = DecisionTreeRegressor()
             tree.fit(X, y[col])
@@ -64,6 +68,7 @@ class TreeWrapper:
         X = X[self.ordering]
         res = pd.DataFrame({col: tree.predict(X) for col, tree in self.trees.items()})
         return pd.concat([X, res], axis=1)
+
 
 def reload_trees():
     res = {}
@@ -75,7 +80,7 @@ def reload_trees():
         if not (file / "optim.csv").exists():
             continue
 
-        run_name = file.name.lower().replace("_"," ")
+        run_name = file.name.lower().replace("_", " ")
         run = pd.read_csv(file / "optim.csv")
         tree = TreeWrapper()
         tree.fit(run[input_features], run[design_parameters])
@@ -83,11 +88,15 @@ def reload_trees():
 
     return res
 
+
 def do_experiment(exploration_path, runs_path):
     vecsizes = np.linspace(256, 20000, 20).astype(int)
     ranges = np.arange(1, ncores + 1)
 
-    df = pd.DataFrame(np.array(np.meshgrid(vecsizes, ranges)).T.reshape(-1, 2), columns=kernel_parameters)
+    df = pd.DataFrame(
+        np.array(np.meshgrid(vecsizes, ranges)).T.reshape(-1, 2),
+        columns=kernel_parameters,
+    )
     samples = runner(df)
 
     # next, Fetch mlkaps trees
@@ -111,13 +120,11 @@ def do_experiment(exploration_path, runs_path):
     return r, samples
 
 
-
-
 def main():
     if len(sys.argv) != 2:
         print("Usage: python exploration.py <output>")
         sys.exit(1)
-    
+
     output_path = Path(sys.argv[1])
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -133,8 +140,10 @@ def main():
     with plt.rc_context(rc={"font.size": 10}):
         # We want one lineplot per vector size
         fig, axs = plt.subplots(4, 4, figsize=(16, 16), layout="constrained")
-        colormap = matplotlib.colormaps.get_cmap('tab10')  # Get the colormap
-        colors = [colormap(i) for i in range(len(runs["run"].unique()))]  # Generate colors
+        colormap = matplotlib.colormaps.get_cmap("tab10")  # Get the colormap
+        colors = [
+            colormap(i) for i in range(len(runs["run"].unique()))
+        ]  # Generate colors
         for ax, size in zip(axs.flatten(), np.unique(samples["vecsize"])):
             subset = samples[samples["vecsize"] == size]
             ax.plot(subset["nthreads"], subset["performance"], marker="o")
@@ -145,7 +154,12 @@ def main():
             for i, run_name in enumerate(runs["run"].unique()):
                 run = runs[runs["run"] == run_name]
                 run = run[run["vecsize"] == size]
-                ax.axvline(run["nthreads"].iloc[0], color=colors[i], linestyle="--", label=run_name)
+                ax.axvline(
+                    run["nthreads"].iloc[0],
+                    color=colors[i],
+                    linestyle="--",
+                    label=run_name,
+                )
             ax.legend(loc="upper right")
 
         fig.savefig(output_path / "exploration.png")
