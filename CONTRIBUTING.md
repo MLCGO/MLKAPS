@@ -8,7 +8,7 @@
 * All contributions must provide:
   * Sphinx documentation for new functions and modules.
   * Author(s) must provide a  tests covering all  new features.
-  * test time must be kept small, if possible reuse and extend existing test
+  * Integration tests are expensive. When possible, prefer unit tests or keep the test cases minimal.
 * To get a PR accepted:
   * PR description must describe new contributions, bug fixes, and enhancements. In addition, it can describe additional and/or missing tasks to be completed to encourage others to contribute to your PR.
   * Ask 2 reviewers when ready. If you do not know who to assign, assign @titeup and comment that you would like to get your PR reviewed.
