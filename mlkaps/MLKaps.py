@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 """
@@ -28,7 +28,6 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 import pandas as pd
 import logging
 import time
-
 from mlkaps.clustering import generate_clustering_models
 from mlkaps.clustering.clustering_visualization import (
     plot_all_decisions_maps,
@@ -43,6 +42,7 @@ from mlkaps.optimization.genetic_optimizer import (
 )
 from mlkaps.sample_collection.kernel_sampling import sample_kernel
 from ._utils import setup_logging, add_file_logger, ensure_not_root
+import os
 
 
 def run_clustering(args, experiment_config, optim_results):
@@ -65,8 +65,8 @@ def run_clustering(args, experiment_config, optim_results):
     # Properly re-implement it
     clustered_models = generate_clustering_models(experiment_config, optim_results)
 
-    #plot_all_decisions_maps(experiment_config, optim_results, clustered_models)
-    #plot_all_decision_tree(experiment_config, clustered_models)
+    # plot_all_decisions_maps(experiment_config, optim_results, clustered_models)
+    # plot_all_decision_tree(experiment_config, clustered_models)
 
     # Experimental
     decision_trees_to_c(experiment_config, clustered_models)
@@ -277,6 +277,13 @@ def parse_arguments(argv, configuration_required=False):
 
     if args.quick_restart is not None:
         logging.info(f"Trying to quick-restart from '{args.quick_restart}'")
+
+    # We usually don't allow running MLKAPS in sudo mode
+    # However, it may be required when running MLKAPS inside a docker
+    # And when inside github workflows
+    # This check for an environment variable to bypass the check
+    if os.environ.get("MLKAPS_IS_IN_DOCKER") == "True":
+        args.allow_root = True
 
     return args
 
