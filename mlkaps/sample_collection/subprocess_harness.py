@@ -169,10 +169,9 @@ class MonoSubprocessHarness:
         # UB = {obj: bound for obj, bound in zip(self.objectives, self.bounds)}
         objectives = None
         if result.timed_out:
-            TO_error = f"Process timed out (max {self.timeout} seconds)\n"
+            error = f"Process timed out (max {self.timeout} seconds)\n"
             # ---- save objective to UB, make sense if objective is a time,
             # would require more thinking for true integration....
-            error = None
             objectives = {o: self.objectives_bounds[o] for o in self.objectives}  # UB[o]
         elif result.exitcode != 0:
             error = f"Process exited with code {result.exitcode}\n"

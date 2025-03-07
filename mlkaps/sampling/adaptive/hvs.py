@@ -4,7 +4,7 @@ Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
 Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 
-Definition of the Hiearchical Variance Sampling (HVS) adaptive sampling method 
+Definition of the Hiearchical Variance Sampling (HVS) adaptive sampling method
 based on DOI:10.1007/978-3-642-32820-6_11
 """
 
