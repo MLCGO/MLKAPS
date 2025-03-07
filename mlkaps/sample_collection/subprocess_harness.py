@@ -32,14 +32,16 @@ class ProcessCleanupHandler:
     """
     Helper class to cleanly kill all subprocess on failure or user exit
 
-    This class wraps around subprocess.Popen and ensures that the subprocess and its childs are killed if an exception if received.
+    This class wraps around subprocess.Popen and ensures that the subprocess
+    and its childs are killed if an exception if received.
     This includes SystemExit and KeyboardInterrupt, so no zombie process is created if the user kills MLKAPS.
     """
 
     def __init__(self, timeout: float = None):
         """Initiliaze the cleanup handler
 
-        :param timeout: A timeout in seconds for the process to finish. The process will be killed if the timeout expries, defaults to None
+        :param timeout: A timeout in seconds for the process to finish.
+        The process will be killed if the timeout expries, defaults to None
         :type timeout: float, optional
         """
         self.timeout = timeout
@@ -87,16 +89,16 @@ class ProcessCleanupHandler:
             process = subprocess.Popen(*args, **kwargs)
             stdout, stderror = process.communicate(timeout=self.timeout)
         except subprocess.TimeoutExpired:
-            logging.warning(f"Process timedout, cleaning up...)")
+            logging.warning("Process timedout, cleaning up...)")
 
             stdout, stderror = self._cleanup_kill(process)
             timed_out = True
-        except:
+        except BaseException:  # We should capture all exceptions here to ensure cleanup
             # Can occur if an exception is raised  during Popen
             if process is None:
                 raise
 
-            logging.warning(f"Exception raised during subprocess execution, cleaning up...")
+            logging.warning("Exception raised during subprocess execution, cleaning up...")
 
             self._cleanup_kill(process)
             raise
@@ -168,18 +170,21 @@ class MonoSubprocessHarness:
         objectives = None
         if result.timed_out:
             TO_error = f"Process timed out (max {self.timeout} seconds)\n"
-            # ---- save objective to UB, make sense if objective is a time, would require more thinking for true integration....
+            # ---- save objective to UB, make sense if objective is a time,
+            # would require more thinking for true integration....
             error = None
             objectives = {o: self.objectives_bounds[o] for o in self.objectives}  # UB[o]
         elif result.exitcode != 0:
             error = f"Process exited with code {result.exitcode}\n"
-            # ---- save objective to UB, make sense if objective is a time, would require more thinking for true integration....
+            # ---- save objective to UB, make sense if objective is a time,
+            # would require more thinking for true integration....
             objectives = {o: self.objectives_bounds[o] for o in self.objectives}  # UB[o]
         else:
             objectives, error = self._parse_output(result.stdout)
 
         if error is not None:
-            # ---- save objective to UB, make sense if objective is a time, would require more thinking for true integration....
+            # ---- save objective to UB, make sense if objective is a time,
+            # would require more thinking for true integration....
             objectives = {o: self.objectives_bounds[o] for o in self.objectives}
             # float("nan") for o in self.objectives}
             msg = textwrap.indent(f"Arguments: {result.arguments}", "\t| ")

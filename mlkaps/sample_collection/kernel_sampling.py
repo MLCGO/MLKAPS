@@ -282,7 +282,8 @@ class ExecutorFactory:
         timeout = _get_key_or_error(
             param,
             "timeout",
-            "No timeout defined for the kernel sampling module, defaulting to 30s\nSet 'timeout' to 'None' to disable timeout.",
+            "No timeout defined for the kernel sampling module, defaulting to 30s\n"
+            "Set 'timeout' to 'None' to disable timeout.",
             default=30,
             fatal=False,
         )

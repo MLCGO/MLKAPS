@@ -5,7 +5,6 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-from mlkaps.configuration import ExperimentConfig
 import pandas as pd
 from typing import Iterable
 

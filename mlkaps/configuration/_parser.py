@@ -148,8 +148,6 @@ def parse_objectives(configuration, data_section):
 
 
 def parse_modeling(configuration, json_data):
-    from mlkaps.modeling.modeling import ModelWrapper
-
     # Create a blank modeling section in the map
     configuration["modeling"] = {}
 

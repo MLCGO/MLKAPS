@@ -1,23 +1,10 @@
 #!/usr/bin/env python3
-
 """
 Copyright (C) 2020-2024 Intel Corporation
 Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
 Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
-
-"""
-This file implements the main MLKAPS pipeline, including:
-
-1. Configuration parsing
-2. (Adaptive) sampling
-3. Modeling 
-4. (Optionnal) Validation
-5. Optimization
-6. Clustering
-"""
-
 
 import json
 import pathlib
@@ -29,10 +16,6 @@ import pandas as pd
 import logging
 import time
 from mlkaps.clustering import generate_clustering_models
-from mlkaps.clustering.clustering_visualization import (
-    plot_all_decisions_maps,
-    plot_all_decision_tree,
-)
 from mlkaps.codegen.codegen import decision_trees_to_c
 from mlkaps.configuration import ExperimentConfig
 from mlkaps.modeling.modeling import build_main_surrogates

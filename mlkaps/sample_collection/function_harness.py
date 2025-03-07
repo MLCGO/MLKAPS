@@ -19,7 +19,7 @@ import pickle
 def is_pickleable(obj):
     try:
         pickle.dumps(obj)
-    except Exception as e:
+    except Exception:
         return False
     return True
 
@@ -194,7 +194,7 @@ class FunctionPath:
         :rtype: bool
         """
         res = self.to_function(none_on_failure=True)
-        return not res is None
+        return res is not None
 
     def _import_from_source(self) -> Callable:
         """

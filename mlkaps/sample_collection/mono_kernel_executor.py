@@ -95,9 +95,7 @@ class MonoKernelExecutor:
 
         pbar = _ProgressBarWrapper(self.progress_bar, len(samples))
 
-        count = [0]
-        print(f"Validating samples before execution")
-
+        print("Validating samples before execution")
         for id in samples.index:
             sample = samples.loc[id].to_dict()
             result = self.runner(sample)

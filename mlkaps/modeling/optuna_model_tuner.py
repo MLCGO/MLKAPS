@@ -7,7 +7,6 @@ SPDX-License-Identifier: BSD-3-Clause
 
 import numpy as np
 import pandas as pd
-import os
 import pathlib
 from tqdm import tqdm
 import optuna
@@ -37,7 +36,8 @@ class OptunaModelTuner:
         :type inputs: pd.DataFrame
         :param labels: The label to fit the model for
         :type labels: pd.Series | Iterable
-        :param metric: A function (sklearn metric) that computes an error/score for the model, defaults to mean_absolute_error. This function will be minimized
+        :param metric: A function (sklearn metric) that computes an error/score for the model,
+        defaults to mean_absolute_error. This function will be minimized
         :type metric: Callable[[Iterable, Iterable], float], optional
         :param n_folds: The number of folds to use to compute the model score, defaults to 5
         :type n_folds: int, optional

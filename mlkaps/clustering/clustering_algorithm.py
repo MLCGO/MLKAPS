@@ -46,7 +46,8 @@ def _make_model(
     clustering_parameters = configuration["clustering"]["clustering_parameters"]
     model = model_type(**clustering_parameters)
 
-    # We need to ensure boolean are correctly encoded as bool, and not string, objects, or integers as this raises an exception in sklearn
+    # We need to ensure boolean are correctly encoded as bool, and not string,
+    # objects, or integers as this raises an exception in sklearn
     if feature_type == "Boolean":
         optimization_results[feature] = optimization_results[feature].astype(bool)
 

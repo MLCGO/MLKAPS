@@ -31,7 +31,8 @@ class FailedRunResolver:
 
         if resolver_name in cls.known_resolvers:
             raise ValueError(
-                f"Conflicting resolver name class <{cls.__name__}> declared the name '{resolver_name}' which is already in use by <{cls.known_resolvers[resolver_name].__name__}>"
+                f"Conflicting resolver name class <{cls.__name__}> declared the name '{resolver_name}' \
+                which is already in use by <{cls.known_resolvers[resolver_name].__name__}>"
             )
 
         cls.known_resolvers[resolver_name] = cls
