@@ -16,7 +16,7 @@ class TestHVSampler:
         features = {"a": [0, 5]}
 
         def f(df):
-            pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+            return pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
 
         sampler = HVSampler({"a": "float"}, features)
         data = sampler.sample(100, None, f)
@@ -27,7 +27,7 @@ class TestHVSampler:
         features = {"a": [0, 5], "b": [0, 5]}
 
         def f(df):
-            pd.concat([df, df.apply(lambda x: x.iloc[0] + x.iloc[1], axis=1)], axis=1)
+            return pd.concat([df, df.apply(lambda x: x.iloc[0] + x.iloc[1], axis=1)], axis=1)
 
         sampler = HVSampler({"a": "float", "b": "float"}, features)
         data = sampler.sample(100, None, f)
@@ -41,7 +41,7 @@ class TestHVSampler:
         features = {"a": [0, 5]}
 
         def f(df):
-            pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+            return pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
 
         sampler = HVSampler({"a": "float"}, features)
         # Request a single sample, but use bootstrap
@@ -53,7 +53,7 @@ class TestHVSampler:
 
         # Return 0 if x < 50, else return x
         def f(df):
-            pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+            return pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
 
         sampler = HVSampler({"a": "float"}, features)
         # Request a single sample, but use bootstrap
@@ -73,7 +73,7 @@ class TestHVSampler:
 
         # Return 0 if x < 50, else return x
         def f(df):
-            pd.concat([df, df.apply(lambda x: 0 if x.iloc[0] < 50 else x.iloc[0], axis=1)], axis=1)
+            return pd.concat([df, df.apply(lambda x: 0 if x.iloc[0] < 50 else x.iloc[0], axis=1)], axis=1)
 
         sampler = HVSampler({"a": "float"}, features)
         # Request a single sample, but use bootstrap
