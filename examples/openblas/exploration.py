@@ -2,11 +2,10 @@
 import numpy as np
 import pandas as pd
 import psutil
-
 from mlkaps.sample_collection import MonoSubprocessHarness, MonoKernelExecutor, FailedRunResolver
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # noqa: E402
 from pathlib import Path
 import sys
 

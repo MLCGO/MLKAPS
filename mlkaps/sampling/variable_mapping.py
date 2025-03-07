@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 """
@@ -21,9 +21,7 @@ def _check_variables_type(variables):
             )
 
 
-def map_variables_to_numeric(
-    data: pd.DataFrame, variables_types: dict, variables_values: dict
-) -> pd.DataFrame:
+def map_variables_to_numeric(data: pd.DataFrame, variables_types: dict, variables_values: dict) -> pd.DataFrame:
     """
     Map a dataframe containing integers/categorical/boolean values to the corresponding numeric values
     as defined by the variables_values/types dictionaries
@@ -66,9 +64,7 @@ def map_variables_to_numeric(
     return data
 
 
-def map_float_to_variables(
-    data: pd.DataFrame, variables_types: dict, variables_values: dict
-):
+def map_float_to_variables(data: pd.DataFrame, variables_types: dict, variables_values: dict):
     """
     Map a dataframe containing float values to the corresponding integer/categorical/boolean values
     as defined by the variables_values/types dictionaries

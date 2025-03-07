@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 """
@@ -365,9 +365,7 @@ class HVSPartitionner:
             children.extend(queue)
             queue = children
 
-    def _build_partitions(
-        self, tree: DecisionTreeRegressor, samples: pd.DataFrame
-    ) -> list[HVSPartition]:
+    def _build_partitions(self, tree: DecisionTreeRegressor, samples: pd.DataFrame) -> list[HVSPartition]:
         """
         Build all the partitions using the given tree and samples
 
@@ -382,9 +380,7 @@ class HVSPartitionner:
 
         # Assign every sample to a leaf in the decision tree
         nodes_samples = {}
-        for node, local_data in samples.groupby(
-            tree.apply(samples[self.ordered_features])
-        ):
+        for node, local_data in samples.groupby(tree.apply(samples[self.ordered_features])):
             nodes_samples[node] = local_data
 
         res = []
@@ -431,9 +427,7 @@ class HVSPartitionner:
 
         return partitions_samples
 
-    def distribute_samples(
-        self, partitions: list[HVSPartition], n_samples: int
-    ) -> list[tuple[int, HVSPartition]]:
+    def distribute_samples(self, partitions: list[HVSPartition], n_samples: int) -> list[tuple[int, HVSPartition]]:
         """
         Distribute a given number of samples to each partition,
         weighted using the partitions relative score compared to the sum of all the scores
@@ -450,18 +444,11 @@ class HVSPartitionner:
         scores_sum = sum(p.score for p in partitions)
 
         if scores_sum == 0:
-            partitions_samples = {
-                p.node_id: n_samples // len(partitions) for p in partitions
-            }
+            partitions_samples = {p.node_id: n_samples // len(partitions) for p in partitions}
         else:
-            partitions_samples = {
-                p.node_id: int(ceil(p.score / scores_sum * n_samples))
-                for p in partitions
-            }
+            partitions_samples = {p.node_id: int(ceil(p.score / scores_sum * n_samples)) for p in partitions}
 
-        partitions_samples = self._remove_extra_samples(
-            n_samples, partitions, partitions_samples
-        )
+        partitions_samples = self._remove_extra_samples(n_samples, partitions, partitions_samples)
         return [(partitions_samples[p.node_id], p) for p in partitions]
 
 
@@ -562,9 +549,7 @@ class HVSampler(AdaptiveSampler):
         self.errors = None
         self.final_partitions = None
 
-    def set_variables(
-        self, variables_types: dict, variables_values: dict, mask: list = None
-    ):
+    def set_variables(self, variables_types: dict, variables_values: dict, mask: list = None):
         super().set_variables(variables_types, variables_values, mask)
         self._build_bounded_features()
 
@@ -580,19 +565,14 @@ class HVSampler(AdaptiveSampler):
 
         # Check whether any of the features non-float
         # If true, then we must convert the features to float values
-        if not any(
-            v in ["Categorical", "Boolean", "int"]
-            for v in self.variables_types.values()
-        ):
+        if not any(v in ["Categorical", "Boolean", "int"] for v in self.variables_types.values()):
             self.has_mapped_features = False
             self.numerical_features = self.variables_values
             return
 
         self.has_mapped_features = True
 
-        self.numerical_features = convert_variables_bounds_to_numeric(
-            self.variables_types, self.variables_values
-        )
+        self.numerical_features = convert_variables_bounds_to_numeric(self.variables_types, self.variables_values)
 
     def dump(self, output_directory: Path):
         """
@@ -630,9 +610,7 @@ class HVSampler(AdaptiveSampler):
         if len(features) < 1:
             raise SamplerError("There must be at least 1 feature to sample")
 
-    def _lhs_bootstrap(
-        self, execution_func: Callable[[pd.DataFrame], pd.DataFrame], n_samples: int
-    ) -> pd.DataFrame:
+    def _lhs_bootstrap(self, execution_func: Callable[[pd.DataFrame], pd.DataFrame], n_samples: int) -> pd.DataFrame:
         """
         Bootstrap the sampling process using LHS
 
@@ -693,9 +671,7 @@ class HVSampler(AdaptiveSampler):
         # Ensure that we use numerical data, and map appropriately the categorical variables
         mapped_variables = self._maybe_map_variables(samples)
 
-        new_data, errors = self._sample_for_all_objectives(
-            n_samples, mapped_variables, execution_func
-        )
+        new_data, errors = self._sample_for_all_objectives(n_samples, mapped_variables, execution_func)
 
         self.errors = pd.concat([self.errors, errors])
         samples = pd.concat([samples, new_data])
@@ -803,9 +779,7 @@ class HVSampler(AdaptiveSampler):
 
         return partitions, median_error
 
-    def sample_partitions(
-        self, decorated_partitions: list[HVSPartition]
-    ) -> pd.DataFrame:
+    def sample_partitions(self, decorated_partitions: list[HVSPartition]) -> pd.DataFrame:
         """
         Samples each partition using LHS, and outputs a dataframe with all the samples
         The number of samples is given by the "n_samples" key of each partition
@@ -836,11 +810,7 @@ class HVSampler(AdaptiveSampler):
 
         mapped_data = None
         if reverse:
-            mapped_data = map_float_to_variables(
-                samples, self.variables_types, self.variables_values
-            )
+            mapped_data = map_float_to_variables(samples, self.variables_types, self.variables_values)
         else:
-            mapped_data = map_variables_to_numeric(
-                samples, self.variables_types, self.variables_values
-            )
+            mapped_data = map_variables_to_numeric(samples, self.variables_types, self.variables_values)
         return mapped_data

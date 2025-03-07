@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import textwrap
@@ -95,11 +95,8 @@ class MonoKernelExecutor:
 
         pbar = _ProgressBarWrapper(self.progress_bar, len(samples))
 
-
-        count=[0]
+        count = [0]
         print(f"Validating samples before execution")
-        
-
 
         for id in samples.index:
             sample = samples.loc[id].to_dict()
@@ -119,9 +116,7 @@ class MonoKernelExecutor:
 
         return results
 
-    def _decorate_and_resolve(
-        self, samples: pd.DataFrame, results: list[dict]
-    ) -> pd.DataFrame:
+    def _decorate_and_resolve(self, samples: pd.DataFrame, results: list[dict]) -> pd.DataFrame:
 
         # Copy the dtypes used in the samples
         dtypes = {col: dtype for col, dtype in samples.dtypes.items()}

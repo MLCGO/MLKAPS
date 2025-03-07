@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import numpy as np
@@ -74,9 +74,7 @@ class OptunaModelTuner:
         """
         raise NotImplementedError()
 
-    def _kfold_evaluate(
-        self, model: ModelWrapper
-    ) -> Generator[tuple[list[float], float], None, None]:
+    def _kfold_evaluate(self, model: ModelWrapper) -> Generator[tuple[list[float], float], None, None]:
         """Fit and evalaue the model using kfold. Yields the midway score after every fold.
 
         :param model: A fitted model
@@ -119,9 +117,7 @@ class OptunaModelTuner:
 
         return np.mean(scores)
 
-    def run(
-        self, time_budget: int = 60, n_trials: int = None
-    ) -> tuple[ModelWrapper, dict]:
+    def run(self, time_budget: int = 60, n_trials: int = None) -> tuple[ModelWrapper, dict]:
         """
         Run the optuna tuner until the time budget is expired or n_trials have been run, whichever comes first.
 
@@ -138,13 +134,9 @@ class OptunaModelTuner:
         trials_desc = f"{n_trials} trials" if n_trials is not None else None
         budget_desc = ", ".join(filter(None, [time_budget_desc, trials_desc]))
 
-        with tqdm(
-            desc=f"Running optuna for {budget_desc}", unit=" trial", leave=None
-        ) as pbar:
+        with tqdm(desc=f"Running optuna for {budget_desc}", unit=" trial", leave=None) as pbar:
             optuna.logging.set_verbosity(optuna.logging.WARNING)
-            study = optuna.create_study(
-                direction="minimize", pruner=optuna.pruners.SuccessiveHalvingPruner()
-            )
+            study = optuna.create_study(direction="minimize", pruner=optuna.pruners.SuccessiveHalvingPruner())
             self.study = study
             study.optimize(
                 self._objective,
@@ -162,9 +154,7 @@ class OptunaRecorder(OptunaModelTuner):
     Decorator that will dump the optuna study to a file
     """
 
-    def __init__(
-        self, wrapee: OptunaModelTuner, record_path: str | pathlib.Path | None = None
-    ):
+    def __init__(self, wrapee: OptunaModelTuner, record_path: str | pathlib.Path | None = None):
         """
         Initialize the recorder.
 
@@ -204,16 +194,11 @@ class OptunaRecorder(OptunaModelTuner):
         :rtype: pd.DataFrame
         """
         res = pd.DataFrame(
-            [
-                [session_id, i, v.value, len(self.tuner.inputs)]
-                for i, v in enumerate(study.get_trials())
-            ],
+            [[session_id, i, v.value, len(self.tuner.inputs)] for i, v in enumerate(study.get_trials())],
             columns=["training_id", "iteration", "score", "number_of_samples"],
         )
 
-        res = pd.concat(
-            [res, pd.DataFrame([v.params for v in study.get_trials()])], axis=1
-        )
+        res = pd.concat([res, pd.DataFrame([v.params for v in study.get_trials()])], axis=1)
         return res
 
     def _record(self, study: optuna.study):

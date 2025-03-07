@@ -35,15 +35,13 @@ class XGBoostModelWrapper(ModelWrapper, wrapper_name="xgboost"):
         self.encoding = {k: v for k, v in zip(X.columns, X.dtypes)}
 
         # Identify categorical features
-        self.categorical_features = [
-            i for i, dtype in enumerate(X.dtypes) if dtype.name == 'category'
-        ]
+        self.categorical_features = [i for i, dtype in enumerate(X.dtypes) if dtype.name == "category"]
 
         # Lazily build the model
         if self.model is None:
-            self.hyperparameters['enable_categorical'] = True
+            self.hyperparameters["enable_categorical"] = True
             self.model = xgboost.XGBRegressor(**self.hyperparameters)
-        self.model.fit(X[self.ordering], y, eval_metric='rmse')
+        self.model.fit(X[self.ordering], y, eval_metric="rmse")
 
     def predict(self, inputs: pd.DataFrame):
         inputs = self._encode(inputs)

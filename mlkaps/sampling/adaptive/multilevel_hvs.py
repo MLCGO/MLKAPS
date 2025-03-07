@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 from collections.abc import Callable
@@ -72,12 +72,8 @@ class MultilevelHVS(AdaptiveSampler):
         self.partitions = []
         for objective in objectives:
             # Partition the data for current objective
-            objective_samples = self._partition(
-                objective, data, self.features_levels, n_samples_per_objective
-            )
-            new_samples = pd.concat(
-                [new_samples, objective_samples], axis=0, ignore_index=True
-            )
+            objective_samples = self._partition(objective, data, self.features_levels, n_samples_per_objective)
+            new_samples = pd.concat([new_samples, objective_samples], axis=0, ignore_index=True)
 
         # Run the execution function on the new samples
         labelled_samples = execution_func(new_samples)
@@ -95,9 +91,7 @@ class MultilevelHVS(AdaptiveSampler):
     ) -> pd.DataFrame:
 
         # Run HVS based on the features in the current level
-        features = {
-            k: v for k, v in self.variables_values.items() if k in leveled_features[0]
-        }
+        features = {k: v for k, v in self.variables_values.items() if k in leveled_features[0]}
         next_features = leveled_features[1:]
 
         # Even if we're cutting on some different axis, we need to propagate all the axis
@@ -110,24 +104,18 @@ class MultilevelHVS(AdaptiveSampler):
         new_samples = None
         # We reached the last level, partition based on current features, and samples using HVS
         if len(next_features) == 0:
-            new_samples = self._partition_final(
-                axes, data, features, n_samples, objective
-            )
+            new_samples = self._partition_final(axes, data, features, n_samples, objective)
         else:
             # We are not in the last level, partition based on current features, and apply the
             # next level on each partition
-            new_samples = self._partition_intermediate(
-                axes, data, features, n_samples, next_features, objective
-            )
+            new_samples = self._partition_intermediate(axes, data, features, n_samples, next_features, objective)
 
         return new_samples
 
     def _partition_final(self, axes, data, features, n_samples, objective):
 
         # First, partition using current features
-        partitions, _ = self.hvs.partition(
-            data, objective, n_samples, split_on=features, min_samples_per_leaf=15
-        )
+        partitions, _ = self.hvs.partition(data, objective, n_samples, split_on=features, min_samples_per_leaf=15)
 
         # The current partitions are not necessarily covering all the axes limitations
         # We merge the axes limitations of previous levels with the current partitions
@@ -144,16 +132,12 @@ class MultilevelHVS(AdaptiveSampler):
                 if axis not in partition.axes.keys():
                     partition.axes[axis] = axes[axis]
 
-    def _partition_intermediate(
-        self, axes, data, features, n_samples, next_features, objective
-    ):
+    def _partition_intermediate(self, axes, data, features, n_samples, next_features, objective):
         # First, partition using current features
         # The minimum number of samples per leaf must be high enough so that we can split on the
         # next level
 
-        partitions, _ = self.hvs.partition(
-            data, objective, n_samples, split_on=features, min_samples_per_leaf=90
-        )
+        partitions, _ = self.hvs.partition(data, objective, n_samples, split_on=features, min_samples_per_leaf=90)
 
         # The current partitions are not necessarily covering all the axes limitations
         # We merge the axes limitations of previous levels with the current partitions
@@ -168,11 +152,7 @@ class MultilevelHVS(AdaptiveSampler):
 
             # No need to continue if no samples is allocated to the partition, or if the
             # current partition is empty
-            if (
-                n_samples == 0
-                or partition.samples is None
-                or len(partition.samples) == 0
-            ):
+            if n_samples == 0 or partition.samples is None or len(partition.samples) == 0:
                 continue
 
             results = self._partition(

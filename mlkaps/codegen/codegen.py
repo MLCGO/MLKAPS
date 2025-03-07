@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import matplotlib.pyplot as plt
@@ -53,10 +53,7 @@ def decision_tree_to_c(configuration: ExperimentConfig, decision_tree, feature):
     right = decision_tree.tree_.children_right
     splitting_threshold = decision_tree.tree_.threshold
     # We need an array of the features for each node.
-    features = [
-        configuration.input_parameters[i] if i != -2 else None
-        for i in decision_tree.tree_.feature
-    ]
+    features = [configuration.input_parameters[i] if i != -2 else None for i in decision_tree.tree_.feature]
     value = decision_tree.tree_.value
 
     if isinstance(decision_tree, DecisionTreeClassifier):
@@ -72,24 +69,13 @@ def decision_tree_to_c(configuration: ExperimentConfig, decision_tree, feature):
 
         # if the treshold is -2, then this is a leaf node
         if threshold[node] != -2:
-            output_str += (
-                offset
-                + "if ("
-                + features[node]
-                + " <= "
-                + str(threshold[node])
-                + ") {\n"
-            )
+            output_str += offset + "if (" + features[node] + " <= " + str(threshold[node]) + ") {\n"
             if left[node] != -1:
-                output_str = recurse(
-                    output_str, left, right, threshold, features, left[node], depth + 1
-                )
+                output_str = recurse(output_str, left, right, threshold, features, left[node], depth + 1)
             output_str += offset + "} else {\n"
 
             if right[node] != -1:
-                output_str = recurse(
-                    output_str, left, right, threshold, features, right[node], depth + 1
-                )
+                output_str = recurse(output_str, left, right, threshold, features, right[node], depth + 1)
             output_str += offset + "}\n"
         else:
             feature_value = value[node]
@@ -105,14 +91,14 @@ def decision_tree_to_c(configuration: ExperimentConfig, decision_tree, feature):
         return output_str
 
     output_str = recurse(output_str, left, right, splitting_threshold, features, 0, 0)
-    
-    #print(output_str)
+
+    # print(output_str)
     # Save the output string to a file
-    
+
     file_name = f"C_{feature}_tree.c"
     output_path = configuration.output_directory / file_name
-        
+
     print(f'Decision Tree for "{feature}"saved to C_{feature}_tree.c')
-    with open(output_path , "w") as file:
+    with open(output_path, "w") as file:
         file.write(output_str)
         print(f"Decision tree saved to {output_path}")

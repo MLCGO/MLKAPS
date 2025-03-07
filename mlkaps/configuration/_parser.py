@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import os
@@ -34,17 +34,13 @@ class ParserError(Exception):
 # Parse the visualization section of the json section if any
 # Otherwise, create a blank visualization section with default parameters
 @deprecated
-def _maybe_parse_visualization(
-    configuration, mapped_section, json_section, output_path="", prefix="", dpi=100
-):
+def _maybe_parse_visualization(configuration, mapped_section, json_section, output_path="", prefix="", dpi=100):
     mapped_section["visualization"] = {}
     visu = mapped_section["visualization"]
 
     exp = configuration.output_directory()
     # If the output path is not absolute, create a new directory
-    visu["output_path"] = (
-        exp + output_path if not os.path.isabs(output_path) else output_path
-    )
+    visu["output_path"] = exp + output_path if not os.path.isabs(output_path) else output_path
     visu["prefix"] = prefix
     visu["dpi"] = dpi
 
@@ -59,9 +55,7 @@ def _maybe_parse_visualization(
 
     json_section = json_section["visualization"]
 
-    special_features = [
-        i for i in configuration.get_kernel_input_features() if i in json_section
-    ]
+    special_features = [i for i in configuration.get_kernel_input_features() if i in json_section]
     for param in special_features:
         feature_parameters = json_section[param]
         if "scale" in feature_parameters:
@@ -124,33 +118,33 @@ def parse_experiment_parameters(configuration, json_file):
 
 # Parse the objectives and data sampling parameters
 def parse_objectives(configuration, data_section):
-        experiment_section = data_section["EXPERIMENT"]
-        if "objectives" not in experiment_section:
-            raise Exception("The configuration file does not define any objectives")
+    experiment_section = data_section["EXPERIMENT"]
+    if "objectives" not in experiment_section:
+        raise Exception("The configuration file does not define any objectives")
 
-        configuration["experiment"] = {}
-        keys = configuration["experiment"]
+    configuration["experiment"] = {}
+    keys = configuration["experiment"]
 
-        keys["objectives"] = experiment_section["objectives"]
+    keys["objectives"] = experiment_section["objectives"]
 
-        keys["objectives_list"] = []
-        keys["objectives_directions"] = {}
-        keys["objectives_bounds"] = {}
+    keys["objectives_list"] = []
+    keys["objectives_directions"] = {}
+    keys["objectives_bounds"] = {}
 
-        # Check if keys["objectives"] is a list (support legacy objectives declaration without bounds and directions)
-        if isinstance(keys["objectives"], list):
-            for objective in keys["objectives"]:
-                # Assuming details are provided in another section or default values
-                keys["objectives_list"].append(objective)
-                keys["objectives_directions"][objective] = "minimize"  # Default direction
-                keys["objectives_bounds"][objective] = np.nan  # Default bound
-        elif isinstance(keys["objectives"], dict):
-            for objective, details in keys["objectives"].items():
-                keys["objectives_list"].append(objective)
-                keys["objectives_directions"][objective] = details.get("direction", "minimize")
-                keys["objectives_bounds"][objective] = details.get("bound", np.nan)
-        else:
-            raise Exception("Invalid format for objectives")
+    # Check if keys["objectives"] is a list (support legacy objectives declaration without bounds and directions)
+    if isinstance(keys["objectives"], list):
+        for objective in keys["objectives"]:
+            # Assuming details are provided in another section or default values
+            keys["objectives_list"].append(objective)
+            keys["objectives_directions"][objective] = "minimize"  # Default direction
+            keys["objectives_bounds"][objective] = np.nan  # Default bound
+    elif isinstance(keys["objectives"], dict):
+        for objective, details in keys["objectives"].items():
+            keys["objectives_list"].append(objective)
+            keys["objectives_directions"][objective] = details.get("direction", "minimize")
+            keys["objectives_bounds"][objective] = details.get("bound", np.nan)
+    else:
+        raise Exception("Invalid format for objectives")
 
 
 def parse_modeling(configuration, json_data):

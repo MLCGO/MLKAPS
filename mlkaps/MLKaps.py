@@ -96,15 +96,11 @@ def run_optimization(args, config_dict, experiment_config, surrogate_models):
     qr = args.quick_restart
     has_quick_restart = qr in ["clustering"]
 
-    genetic_config = GeneticOptimizerConfig.from_configuration_dict(
-        config_dict, experiment_config
-    )
+    genetic_config = GeneticOptimizerConfig.from_configuration_dict(config_dict, experiment_config)
 
     optim_results = {}
     if has_quick_restart:
-        logging.info(
-            "Quick-restart: Loading the optimization results from previous run"
-        )
+        logging.info("Quick-restart: Loading the optimization results from previous run")
         path = pathlib.Path(experiment_config.output_directory / "optim.csv")
         if not path.exists():
             raise FileNotFoundError(path)
@@ -159,9 +155,7 @@ def run_kernel_sampling(args, experiment_config, config_dict):
 
     if has_quick_restart:
         logging.info("Quick-restart: Loading the samples from previous run")
-        path = (
-            experiment_config.output_directory / "kernel_sampling/samples.csv"
-        ).resolve()
+        path = (experiment_config.output_directory / "kernel_sampling/samples.csv").resolve()
         if not path.exists():
             raise FileNotFoundError(path)
         df = pd.read_csv(path)
@@ -185,9 +179,7 @@ def parse_configuration_file(config_path, args):
     with open(config_path, "r") as config_file:
         config_dict = json.load(config_file)
 
-    experiment_config = ExperimentConfig.from_dict(
-        config_dict, Path(config_path).parent, args.output_directory
-    )
+    experiment_config = ExperimentConfig.from_dict(config_dict, Path(config_path).parent, args.output_directory)
 
     return config_dict, experiment_config
 
@@ -209,17 +201,11 @@ def run_pipeline(args, config_dict, experiment_config):
         logging.info("Auto-tuning pipeline started")
         begin = time.time()
 
-        kernel_sampling_results = run_kernel_sampling(
-            args, experiment_config, config_dict
-        )
+        kernel_sampling_results = run_kernel_sampling(args, experiment_config, config_dict)
 
-        surrogate_models = create_surrogate_models(
-            args, kernel_sampling_results, experiment_config
-        )
+        surrogate_models = create_surrogate_models(args, kernel_sampling_results, experiment_config)
 
-        optim_results = run_optimization(
-            args, config_dict, experiment_config, surrogate_models
-        )
+        optim_results = run_optimization(args, config_dict, experiment_config, surrogate_models)
 
         run_clustering(args, experiment_config, optim_results)
         end = time.time()
@@ -318,9 +304,7 @@ def run_from_config(argv, config_dict, working_dir, output_directory=None):
     args = parse_arguments(argv)
     maybe_enable_debug(args)
 
-    experiment_config = ExperimentConfig.from_dict(
-        config_dict, working_dir, output_directory=output_directory
-    )
+    experiment_config = ExperimentConfig.from_dict(config_dict, working_dir, output_directory=output_directory)
 
     setup_output_dir(config_dict, experiment_config, args)
     run_pipeline(args, config_dict, experiment_config)

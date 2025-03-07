@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 """
@@ -28,9 +28,7 @@ class GridSampler(StaticSampler):
     def _sample_linear_space(n_samples, variable_values, variable_type):
         dtype = "int" if variable_type == "int" else "float"
 
-        return list(
-            np.linspace(variable_values[0], variable_values[1], n_samples, dtype=dtype)
-        )
+        return list(np.linspace(variable_values[0], variable_values[1], n_samples, dtype=dtype))
 
     def sample(self, n_samples: dict) -> pd.DataFrame:
         """
@@ -52,7 +50,9 @@ class GridSampler(StaticSampler):
                 raise ValueError(f"Unknown variable type: {variable_type}")
 
         variables = list(self.variables_types.keys())
-        grids = [generate_grid_samples(self.variables_values[var], self.variables_types[var], n_samples[var]) for var in variables]
+        grids = [
+            generate_grid_samples(self.variables_values[var], self.variables_types[var], n_samples[var]) for var in variables
+        ]
 
         def recursive_sample(grids, depth=0, current_sample=[]):
             if depth == len(grids):

@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import pandas as pd
@@ -63,9 +63,7 @@ class DiscardResolver(FailedRunResolver, resolver_name="discard"):
         """
 
         if subset is not None and any(col not in samples.columns for col in subset):
-            raise ValueError(
-                f"Invalid subset of columns. Received: {subset}. Available: {samples.columns}"
-            )
+            raise ValueError(f"Invalid subset of columns. Received: {subset}. Available: {samples.columns}")
 
         return samples.dropna(subset=subset)
 
@@ -84,9 +82,7 @@ class ConstantResolver(FailedRunResolver, resolver_name="constant"):
         """
         self.constant = value
 
-    def __call__(
-        self, samples: pd.DataFrame, subset: list[str] | None = None
-    ) -> pd.DataFrame:
+    def __call__(self, samples: pd.DataFrame, subset: list[str] | None = None) -> pd.DataFrame:
         """
         Apply the resolver to the given Dataframe, optionally specify a subsets of columns to replace
 
@@ -99,9 +95,7 @@ class ConstantResolver(FailedRunResolver, resolver_name="constant"):
         """
 
         if subset is not None and any(col not in samples.columns for col in subset):
-            raise ValueError(
-                f"Invalid subset of columns. Received: {subset}. Available: {samples.columns}"
-            )
+            raise ValueError(f"Invalid subset of columns. Received: {subset}. Available: {samples.columns}")
 
         # Replace all nans or only a subset of columns
         subset = subset or samples.columns

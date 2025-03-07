@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import pickle
@@ -41,9 +41,7 @@ def _make_model(
     elif feature_type in ["int", "float"]:
         model_type = DecisionTreeRegressor
     else:
-        raise ValueError(
-            f"Failed to find clustering model for '{feature}' ('{feature_type}')"
-        )
+        raise ValueError(f"Failed to find clustering model for '{feature}' ('{feature_type}')")
 
     clustering_parameters = configuration["clustering"]["clustering_parameters"]
     model = model_type(**clustering_parameters)
@@ -79,10 +77,7 @@ def _generate_dummy_model(
     :rtype: DummyClassifier
     """
 
-    logging.warning(
-        f"Clustering model for feature '{optim_feature}' is constant, "
-        f"using a dummy model"
-    )
+    logging.warning(f"Clustering model for feature '{optim_feature}' is constant, " f"using a dummy model")
     model = DummyClassifier(strategy="most_frequent")
     model.fit(
         optimization_results[configuration.input_parameters],
@@ -110,22 +105,16 @@ def generate_clustering_models(
     models = {}
 
     # Create/train a model for every design parameter
-    for optim_feature in tqdm(
-        configuration.design_parameters, desc="Building decision trees", leave=None
-    ):
+    for optim_feature in tqdm(configuration.design_parameters, desc="Building decision trees", leave=None):
 
         # If the feature is constant, we output a dummy model that always returns the same value
         # This is necessary since decision trees cannot handle constant features
         if len(np.unique(optimization_results[optim_feature])) == 1:
-            model = _generate_dummy_model(
-                configuration, optimization_results, optim_feature
-            )
+            model = _generate_dummy_model(configuration, optimization_results, optim_feature)
         else:
             model = _make_model(configuration, optim_feature, optimization_results)
 
-        output_path = configuration.output_directory / (
-            optim_feature + "_clustered_model.pkl"
-        )
+        output_path = configuration.output_directory / (optim_feature + "_clustered_model.pkl")
         with open(output_path, "wb") as f:
             pickle.dump(model, f)
 

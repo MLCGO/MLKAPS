@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import os
@@ -18,9 +18,7 @@ from ._parsing_helpers import assert_file_is_executable
 #    },
 #    "flag_2_name": {
 #       ...
-flag_sets_list = {
-    "ffast-math": {"-ffast-math": {"command_line": "-ffast-math", "Type": "Boolean"}}
-}
+flag_sets_list = {"ffast-math": {"-ffast-math": {"command_line": "-ffast-math", "Type": "Boolean"}}}
 
 
 def register_predefined_flag_set(set_name: str, flag_set: dict):
@@ -91,18 +89,14 @@ class CompilationConfiguration:
         self.static_flags = []
 
         if "static_flags" in configuration_dict["PARAMETERS"]["COMPILATION"]:
-            self.static_flags = configuration_dict["PARAMETERS"]["COMPILATION"][
-                "static_flags"
-            ]
+            self.static_flags = configuration_dict["PARAMETERS"]["COMPILATION"]["static_flags"]
 
     def _unfold_flag_set(self, set_name):
         """
         Unfold a pre-defined flag set into one or more flag design features
         """
         if set_name not in flag_sets_list:
-            raise Exception(
-                "CompilationConfiguration - Unknown flag set {}".format(set_name)
-            )
+            raise Exception("CompilationConfiguration - Unknown flag set {}".format(set_name))
 
         for k, v in flag_sets_list[set_name].items():
             self.flag_features[k] = v
@@ -111,9 +105,7 @@ class CompilationConfiguration:
         """
         Fetch and unfold every pre-defined flag set inside the configuration dict
         """
-        predefined_sets = configuration_dict["PARAMETERS"]["COMPILATION"][
-            "predefined_flag_sets"
-        ]
+        predefined_sets = configuration_dict["PARAMETERS"]["COMPILATION"]["predefined_flag_sets"]
 
         for s in predefined_sets:
             self._unfold_flag_set(s)
@@ -150,9 +142,7 @@ class CompilationConfiguration:
 
         # Ensure the path is absolute
         if not os.path.isabs(self.compilation_script):
-            self.compilation_script = os.path.join(
-                self.parent.get_working_directory(), self.compilation_script
-            )
+            self.compilation_script = os.path.join(self.parent.get_working_directory(), self.compilation_script)
 
         assert_file_is_executable(self.compilation_script)
 

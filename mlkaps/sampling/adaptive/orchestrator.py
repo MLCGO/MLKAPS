@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import time
@@ -346,9 +346,7 @@ class ErrorConvergenceStoppingCriterion(StoppingCriterion):
             self.past_errors = current_error
             return False
         else:
-            self.past_errors = pd.concat(
-                [self.past_errors, current_error], axis=0, ignore_index=True
-            )
+            self.past_errors = pd.concat([self.past_errors, current_error], axis=0, ignore_index=True)
 
         if len(self.past_errors) < self.window_size:
             return False
@@ -363,9 +361,7 @@ class ErrorConvergenceStoppingCriterion(StoppingCriterion):
             self.past_change = variances.to_frame().transpose()
         else:
             # Append the new row to the DataFrame
-            self.past_change = pd.concat(
-                [self.past_change, variances], ignore_index=True
-            )
+            self.past_change = pd.concat([self.past_change, variances], ignore_index=True)
 
         # We consider the maximum variance across all objectives as the convergence measurement
         max_convergence = variances.max()
@@ -429,12 +425,7 @@ class StoppingCriterionFactory:
             A list of stopping criterion
 
         """
-        return [
-            StoppingCriterionFactory.create_from_dict(
-                criterion_type, config[criterion_type]
-            )
-            for criterion_type in config
-        ]
+        return [StoppingCriterionFactory.create_from_dict(criterion_type, config[criterion_type]) for criterion_type in config]
 
     @staticmethod
     def create_from_dict(criterion_type: str, config: dict) -> StoppingCriterion:
@@ -464,9 +455,7 @@ class StoppingCriterionFactory:
             raise ValueError(f"Unknown stopping criterion type: {criterion_type}")
 
 
-def default_error_evaluator(
-    samples: pd.DataFrame, features: list[str], objectives: list[str]
-) -> pd.DataFrame:
+def default_error_evaluator(samples: pd.DataFrame, features: list[str], objectives: list[str]) -> pd.DataFrame:
     """
     A default error evaluator for the adaptive sampling orchestrator
     This evaluator uses a XGBoost model to compute the MSE on the objectives
@@ -545,9 +534,7 @@ class AdaptiveSamplingOrchestrator:
         adaptive_sampler: AdaptiveSampler,
         output_directory: Path | str | None,
         stopping_criteria: list[StoppingCriterion] = None,
-        error_evaluator: Callable[
-            [pd.DataFrame, list, list], pd.DataFrame
-        ] = default_error_evaluator,
+        error_evaluator: Callable[[pd.DataFrame, list, list], pd.DataFrame] = default_error_evaluator,
         n_samples_per_iteration: int = 100,
     ):
         """
@@ -615,20 +602,13 @@ class AdaptiveSamplingOrchestrator:
             raise ValueError("Adaptive Sampler Orchestrator run on None sampler object")
 
         if self.execution_function is None:
-            raise ValueError(
-                "Adaptive Sampler Orchestrator run on None execution function"
-            )
+            raise ValueError("Adaptive Sampler Orchestrator run on None execution function")
 
         if self.error_evaluator is None:
-            raise ValueError(
-                "Adaptive Sampler Orchestrator run on None error evaluator"
-            )
+            raise ValueError("Adaptive Sampler Orchestrator run on None error evaluator")
 
         if self.n_samples_per_iteration is None or self.n_samples_per_iteration < 0:
-            raise ValueError(
-                "Adaptive Sampler Orchestrator run with invalid number of samples per "
-                "iteration"
-            )
+            raise ValueError("Adaptive Sampler Orchestrator run with invalid number of samples per " "iteration")
 
     def run(self):
         """
@@ -672,31 +652,23 @@ class AdaptiveSamplingOrchestrator:
         if self.n_samples_per_iteration == 0:
             return None
 
-        with tqdm(
-            desc="Running adaptive sampling", unit=" percent", leave=None
-        ) as pbar:
+        with tqdm(desc="Running adaptive sampling", unit=" percent", leave=None) as pbar:
             while not done:
                 # find the maximum number of samples we can take for the next iteration
                 n_samples = self._find_n_samples_next_iteration(dataset)
 
                 # Run the adaptive sampler
-                dataset = self.adaptive_sampler.sample(
-                    n_samples, dataset, self.execution_function
-                )
+                dataset = self.adaptive_sampler.sample(n_samples, dataset, self.execution_function)
 
                 dataset.to_csv(self.output_directory / "samples.csv", index=False)
 
                 # If this is the first iteration, we need to extract the objectives
                 # From the results dataset
                 if self.objectives is None:
-                    self.objectives = [
-                        col for col in dataset.columns if col not in self.features
-                    ]
+                    self.objectives = [col for col in dataset.columns if col not in self.features]
 
                 # Evaluate the error for each objective
-                current_error = self.error_evaluator(
-                    dataset, list(self.features.keys()), self.objectives
-                )
+                current_error = self.error_evaluator(dataset, list(self.features.keys()), self.objectives)
 
                 # Check if we must stop
                 done = self._check_any_criteria_reached(dataset, current_error)
@@ -720,9 +692,7 @@ class AdaptiveSamplingOrchestrator:
         for criterion in self.criteria:
             criterion.dump(self.output_directory)
 
-    def _check_any_criteria_reached(
-        self, dataset: pd.DataFrame, current_error: pd.DataFrame
-    ) -> bool:
+    def _check_any_criteria_reached(self, dataset: pd.DataFrame, current_error: pd.DataFrame) -> bool:
         """
         Check if any of the stopping criterion has been reached
 

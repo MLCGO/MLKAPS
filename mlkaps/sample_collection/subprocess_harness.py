@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 from dataclasses import dataclass
@@ -16,6 +16,7 @@ import pathlib
 from collections import namedtuple
 from typing import Dict
 import sys
+
 
 @dataclass
 class ProcessResult:
@@ -52,8 +53,8 @@ class ProcessCleanupHandler:
         :rtype: tuple[str, str]
         """
         if os.name == "nt":
-            subprocess.call(['taskkill', '/F', '/T', '/PID',  str(process.pid)])
-        else:                
+            subprocess.call(["taskkill", "/F", "/T", "/PID", str(process.pid)])
+        else:
             with suppress(ProcessLookupError):
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
         return process.communicate()
@@ -65,20 +66,20 @@ class ProcessCleanupHandler:
         :rtype: tuple[subprocess.Popen, str, str]
         """
 
-        # On Windows, .py file are not executable.  
+        # On Windows, .py file are not executable.
         # Add "python" as the command. sys.executable is the path to the python interpreter
 
         if os.name == "nt":
-            assert isinstance(args,tuple)
+            assert isinstance(args, tuple)
             assert len(args) == 1
-            assert isinstance(args[0],list)
+            assert isinstance(args[0], list)
             alist = args[0]
             wpath = pathlib.WindowsPath(alist[0])
             if not pathlib.Path(wpath).exists():
-                raise(FileNotFoundError(f"File {wpath} not found"))
-               
+                raise (FileNotFoundError(f"File {wpath} not found"))
+
             if wpath.suffix == ".py":
-                args = ([sys.executable] + alist,) 
+                args = ([sys.executable] + alist,)
 
         timed_out = False
         process = None
@@ -95,9 +96,7 @@ class ProcessCleanupHandler:
             if process is None:
                 raise
 
-            logging.warning(
-                f"Exception raised during subprocess execution, cleaning up..."
-            )
+            logging.warning(f"Exception raised during subprocess execution, cleaning up...")
 
             self._cleanup_kill(process)
             raise
@@ -123,7 +122,7 @@ class MonoSubprocessHarness:
         timeout: float | None = None,
     ):
         self.objectives = objectives
-        self.objectives_bounds= objectives_bounds
+        self.objectives_bounds = objectives_bounds
         self.executable_path = executable_path
         self.timeout = timeout
         self.arguments_order = arguments_order
@@ -165,28 +164,28 @@ class MonoSubprocessHarness:
         arguments = [str(sample[k]) for k in self.arguments_order]
         result = self._run_process(arguments)
         # ----- Set to arbitrary value
-        #UB = {obj: bound for obj, bound in zip(self.objectives, self.bounds)}
+        # UB = {obj: bound for obj, bound in zip(self.objectives, self.bounds)}
         objectives = None
         if result.timed_out:
             TO_error = f"Process timed out (max {self.timeout} seconds)\n"
-            #---- save objective to UB, make sense if objective is a time, would require more thinking for true integration.... 
+            # ---- save objective to UB, make sense if objective is a time, would require more thinking for true integration....
             error = None
-            objectives = {o: self.objectives_bounds[o] for o in self.objectives} #UB[o]
+            objectives = {o: self.objectives_bounds[o] for o in self.objectives}  # UB[o]
         elif result.exitcode != 0:
             error = f"Process exited with code {result.exitcode}\n"
-             #---- save objective to UB, make sense if objective is a time, would require more thinking for true integration.... 
-            objectives = {o: self.objectives_bounds[o] for o in self.objectives} #UB[o]
+            # ---- save objective to UB, make sense if objective is a time, would require more thinking for true integration....
+            objectives = {o: self.objectives_bounds[o] for o in self.objectives}  # UB[o]
         else:
             objectives, error = self._parse_output(result.stdout)
 
         if error is not None:
-            #---- save objective to UB, make sense if objective is a time, would require more thinking for true integration....
+            # ---- save objective to UB, make sense if objective is a time, would require more thinking for true integration....
             objectives = {o: self.objectives_bounds[o] for o in self.objectives}
-                    #float("nan") for o in self.objectives}
+            # float("nan") for o in self.objectives}
             msg = textwrap.indent(f"Arguments: {result.arguments}", "\t| ")
             msg += textwrap.indent(f"\nPID: {result.pid}", "\t| ")
             msg += textwrap.indent(f"\nStdout:\n{result.stdout}", "\t> ")
             error += msg
-        
+
         res_type = namedtuple("SubprocessRunnerOutput", ["data", "error", "timed_out"])
         return res_type(data=objectives, error=error, timed_out=result.timed_out)

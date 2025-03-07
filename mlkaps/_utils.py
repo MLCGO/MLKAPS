@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import logging
@@ -39,9 +39,7 @@ def ensure_not_root(args):
     if args.allow_root:
         return
     if "posix" in os.name and os.geteuid() == 0:
-        logging.critical(
-            "MLKAPS was run with root permissions. This is not allowed due to security concerns, exiting (1)"
-        )
+        logging.critical("MLKAPS was run with root permissions. This is not allowed due to security concerns, exiting (1)")
         exit(1)
     else:
         return
