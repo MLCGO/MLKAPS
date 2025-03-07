@@ -8,6 +8,12 @@ class XGBoostModelWrapper(ModelWrapper, wrapper_name="xgboost"):
     Wrapper for XGBoost regressor.
 
     Ensures that the features are passed in the correct order and are correctly typed
+
+    >>> model = XGBoostModelWrapper(max_depth=0, min_child_weight=1, n_estimators=1)
+    >>> df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [1, 2, 3, 4]})
+    >>> model.fit(df[["x"]], df["y"])
+    >>> model.predict(df[["x"]]).shape
+    (4,)
     """
 
     def __init__(self, **hyperparameters):
@@ -41,16 +47,8 @@ class XGBoostModelWrapper(ModelWrapper, wrapper_name="xgboost"):
         if self.model is None:
             self.hyperparameters["enable_categorical"] = True
             self.model = xgboost.XGBRegressor(**self.hyperparameters)
-        self.model.fit(X[self.ordering], y, eval_metric="rmse")
+        self.model.fit(X[self.ordering], y)
 
     def predict(self, inputs: pd.DataFrame):
         inputs = self._encode(inputs)
         return self.model.predict(inputs[self.ordering])
-
-    def set_max_thread(self, n_threads: int):
-        """Restrict the maximum number of threads allowed for the XGBoost model
-
-        :param n_threads: The maximum allowed number of threads
-        :type n_threads: int
-        """
-        self.model.set_params(n_jobs=n_threads)
