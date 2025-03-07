@@ -8,9 +8,9 @@ SPDX-License-Identifier: BSD-3-Clause
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import builder_helper as helper
-import pytest
+import matplotlib.pyplot as plt # noqa: E402
+import builder_helper as helper # noqa: E402
+import pytest # noqa: E402
 
 
 @pytest.fixture(scope="class")

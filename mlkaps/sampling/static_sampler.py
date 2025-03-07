@@ -3,9 +3,7 @@ Copyright (C) 2020-2024 Intel Corporation
 Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
 Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
-"""
 
-"""
 Define StaticSampler, the base class for all static samplers (Samplers where the final number of samples is known when called)
 """
 

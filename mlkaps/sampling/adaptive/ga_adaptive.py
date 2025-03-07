@@ -3,9 +3,7 @@ Copyright (C) 2020-2024 Intel Corporation
 Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
 Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
-"""
 
-"""
 Definition of the GA-Adaptive sampling process, based on genetic algorithms
 """
 
@@ -18,9 +16,13 @@ from pymoo.core.mixed import (
     MixedVariableSampling,
 )
 from pymoo.optimize import minimize
+from pymoo.termination.collection import TerminationCollection
+from pymoo.termination.ftol import MultiObjectiveSpaceTermination
+from pymoo.termination.robust import RobustTermination
+from pymoo.termination import get_termination
+
 from tqdm import tqdm
 from typing import Callable
-
 
 from mlkaps.configuration import ExperimentConfig
 from mlkaps.modeling import OptunaTunerLightgbm, SurrogateFactory
@@ -29,15 +31,7 @@ from . import HVSampler
 from .. import SamplerError
 from .. import RandomSampler, LhsSampler
 import logging
-
-
-from tqdm import tqdm
-import logging
 import time
-from pymoo.termination.collection import TerminationCollection
-from pymoo.termination.ftol import MultiObjectiveSpaceTermination
-from pymoo.termination.robust import RobustTermination
-from pymoo.termination import get_termination
 
 
 from mlkaps.modeling.encoding import encode_dataframe
@@ -184,7 +178,8 @@ class GAAdaptiveSampler:
 
         logging.info(f"Found samples at '{self.output_path}', quick-restarting")
         logging.warning(
-            f"GA-Adaptive will quick-restart by default, this is currently not configurable\nPlease delete '{self.output_path} to skip quick-restart."
+            f"GA-Adaptive will quick-restart by default, this is currently not configurable\n"
+            f"Please delete '{self.output_path} to skip quick-restart."
         )
         loaded_samples = pd.read_csv(self.output_path)
         return loaded_samples
