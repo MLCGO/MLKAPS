@@ -37,3 +37,14 @@ requires = ["flit_core >=3.7,<4"]
 [tool.pytest.ini_options]
 addopts = "-v --doctest-modules"
 testpaths = ["tests", "mlkaps"]
+
+[tool.black]
+line-length = 127
+exclude = '''(
+    /(
+        .git
+        | __pycache__
+        | build
+        | dist
+    )/
+)'''
