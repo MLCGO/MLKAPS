@@ -198,7 +198,6 @@ class GAAdaptiveSampler:
 
     def _resampling_loop(self, samples, pbar) -> pd.DataFrame:
         pbar.set_description("GA-Adaptive-Random")
-        print("Running GA-Adaptive-Random")
 
         final_ratio_delta = self.final_ga_ratio - self.initial_ga_ratio
         while len(samples) < self.n_samples:
