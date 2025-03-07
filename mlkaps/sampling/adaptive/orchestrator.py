@@ -365,7 +365,7 @@ class ErrorConvergenceStoppingCriterion(StoppingCriterion):
 
         # We consider the maximum variance across all objectives as the convergence measurement
         max_convergence = variances.max()
-        return max_convergence < self.threshold
+        return bool(max_convergence < self.threshold) # We need to convert to bool to avoid returning a numpy.bool_
 
     def max_samples(self, data: pd.DataFrame | None) -> int:
         """
@@ -465,7 +465,7 @@ def default_error_evaluator(samples: pd.DataFrame, features: list[str], objectiv
     >>> objectives = ["c"]
     >>> # Outputs a dataframe with the MSE for each objective, here, only the MSE for "c"
     >>> default_error_evaluator(samples, features, objectives)  # doctest: +ELLIPSIS
-                  c
+         c
     0  ...
 
     Parameters
@@ -514,15 +514,15 @@ class AdaptiveSamplingOrchestrator:
     convergence evaluation.
 
     >>> from mlkaps.sampling.adaptive import AdaptiveSamplingOrchestrator, HVSampler
-    >>> sampler = HVSampler()
     >>> features = {"a": [0, 5], "b": [0, 5]}
+    >>> sampler = HVSampler({"a": "int", "b": "int"}, features)
     >>> f = lambda df: pd.concat([df, df["a"] + df["b"]], axis=1)
     >>> stopping_criteria = [MaxNSampleStoppingCriterion(200)]
     >>> orchestrator = AdaptiveSamplingOrchestrator(features, f, sampler, None, stopping_criteria)
     >>> # Output a dataframe containing all the samples
     >>> orchestrator.run() # doctest: +ELLIPSIS
-                a         b         0
-    0    ...
+        a  b  0
+    0   ...
 
     [200 rows x 3 columns]
     """
@@ -660,7 +660,8 @@ class AdaptiveSamplingOrchestrator:
                 # Run the adaptive sampler
                 dataset = self.adaptive_sampler.sample(n_samples, dataset, self.execution_function)
 
-                dataset.to_csv(self.output_directory / "samples.csv", index=False)
+                if self.output_directory is not None:
+                    dataset.to_csv(self.output_directory / "samples.csv", index=False)
 
                 # If this is the first iteration, we need to extract the objectives
                 # From the results dataset

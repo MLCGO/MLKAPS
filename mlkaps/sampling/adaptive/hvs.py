@@ -471,10 +471,8 @@ class HVSampler(AdaptiveSampler):
     >>> # Define the function to sample. which MUST return a dataframe containing the original
     >>> # dataframe, and the sampled values as new columns
     >>> f = lambda df: pd.concat([df, df.apply(lambda x: x[0], axis=1)], axis=1)
-    >>> sampler = HVSampler()
-    >>> sampler.init()
-
-    >>> samples = sampler.sample(10, None, f, features)
+    >>> sampler = HVSampler({"x": "int"}, features)
+    >>> samples = sampler.sample(10, None, f)
     >>> # In this case, x = y for all samples
     >>> all(samples.iloc[:, 0] == samples.iloc[:, 1])
     True
@@ -487,10 +485,10 @@ class HVSampler(AdaptiveSampler):
     True
 
     >>> # The sampler will throw on invalid parameters
-    >>> samples = sampler.sample(-1, None, f, features)
+    >>> samples = sampler.sample(-1, None, f)
     Traceback (most recent call last):
     ...
-    TypeError: n_samples must be a positive integer
+    mlkaps.sampling.sampler.SamplerError: n_samples must be a positive integer
     """
 
     def __init__(
