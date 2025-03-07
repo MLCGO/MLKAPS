@@ -313,11 +313,6 @@ class GAAdaptiveSampler:
         # First, pick new optimization points
         optimization_points = self._pick_random_optimization_points(n_samples)
 
-        # print head of samples and dtype
-        # print(samples.head())
-        # print(samples.dtypes)
-        # print(self.config.parameters_type.keys())
-        # print(self.config.parameters_type.values())
         # Fit models to the currently sampled points
         models = self._fit_models(samples)
 
@@ -425,7 +420,6 @@ class GAAdaptiveSampler:
             tuner = OptunaTunerLightgbm(samples.drop(self.config.objectives, axis=1), samples[obj])
             model, _ = tuner.run(time_budget=2 * 60, n_trials=128)
         else:
-            print("Building oracle model for ga-adaptive step")
             factory = SurrogateFactory(self.config, samples)
             model = factory.build(obj)
         return model
