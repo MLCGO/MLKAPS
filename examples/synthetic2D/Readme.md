@@ -9,7 +9,7 @@ Before running this example, ensure you have `mlkaps` installed. Follow the inst
 This test demonstrates usage of `mlkaps` framework on a synthetic 2D dataset. To run the test, simply execute the following command:
 
 ```bash
-mlkaps ga-adaptive.json
+mlkaps ga_adaptive.json
 ```
 
 This command will use the `ga-adaptive.json` configuration file to perform the test.
