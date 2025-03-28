@@ -112,7 +112,22 @@ With 8 cores available, the experiments runs in around 20 minutes. It may take l
 
 ### Output
 
-After running the experiment, you get a few notable output:
+After running the experiment, you get the following outputs:
 
-- `runs/` will contain the MLKAPS generated-files, including the samples, the found optimums, the surrogate model, and the decision trees. The content of this folder may depend on your version of MLKAPS.
-- `results/` will contain the output of `exploration.py`, the results of the exhaustive search, and a plot showing how MLKAPS performed on this experiment.
+- `runs/<run_label>` will contain MLKAPS generated-files.
+    - `kernel_sampling/samples.csv` contain the samples collected by MLKAPS
+    - `metadata/` will contain the logs and a copy of the configuration used for the run.
+    - `optim.csv` will contain the results of MLKAPS optimization phase: those are the optimums solutions predicted on a regular grid on the Input space. The final decision trees are trained on this data.
+    - `performance_model.pkl` contains the surrogate model used by MLKAPS for the `performance` objective. You can easily reload this model using 
+    pickle and call the `model.predict(data: pd.Dataframe)` method to predicte new points. This is useful to validate the model.
+    - `nthreads_clustered_model.pkl` contains the decision tree fitted on `optim.csv` ([Scikit-Learn decision tree regressor](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeRegressor.html)).
+    - `C_nthreads_tree.c`contains the decision tree converted to C code.
+
+**Note: pickled objects may not be compatible between python versions, and can easily break when updating the virtualenv. It is common to refit the different models using the raw csv data.**
+
+**`exploration.py` shows how to refit the decision trees from `optim.csv`.**
+
+- `results/` will contain the output of `exploration.py`.
+    - `exploration.csv` contains the exhaustive search on different vector size and number of threads. This can be useful to validate MLKAPS' choices.
+    - `exploration.png` shows the results of the exhaustive search.
+    - `runs_samples.csv` shows the results of running MLKAPS' decision tree for different size.
