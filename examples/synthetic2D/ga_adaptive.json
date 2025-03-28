@@ -36,16 +36,10 @@
     }
   },
   "SAMPLING": {
-    "runner": "executable",
+    "runner": "function",
     "runner_parameters": {
-      "kernel": "main.py",
-      "timeout": 5,
-      "parameters_order": [
-        "x",
-        "y",
-        "b",
-	"c"
-      ]
+      "function": "main.py:main",
+      "timeout": 5
     },
     "sampler": "ga_adaptive",
     "sampler_parameters": {
