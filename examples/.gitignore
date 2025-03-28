@@ -2,3 +2,6 @@ output
 *.png
 *.mp4
 *.csv
+*.log
+config_mlkaps.json
+runs/
