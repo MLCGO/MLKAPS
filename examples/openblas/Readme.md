@@ -11,7 +11,7 @@ The parameters are the following:
 
 **Design parameters**:
 
-- `nthreads` $\in [1, \text{max\_threads}]$ the number of threads used by OpenBLAS
+- `nthreads` $\in [1, \text{maxthreads}]$ the number of threads used by OpenBLAS
 
 ## Pre-requisites
 
