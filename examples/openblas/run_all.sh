@@ -14,7 +14,6 @@ RESULT_DIR="results/$RUN_LABEL"
 {
 
     mkdir -p $OUTPUT_DIR
-#    source ./venv/bin/activate
 
     ./templatize.py ./config_mlkaps_template.json ./config_mlkaps.json
 

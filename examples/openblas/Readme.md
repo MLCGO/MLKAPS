@@ -15,6 +15,8 @@ The parameters are the following:
 
 ## Pre-requisites
 
+For this experiment, we assume you already have MLKAPS installed inside a virtualenv.
+
 ### Dependencies
 
 You must have a C++ compiler with OpenMP support, and an OpenMP-enabled version of OpenBLAS. We use cmake to search for `libopenblaso.so` to locate the library.
@@ -47,24 +49,6 @@ And executing the kernel on a small test:
 ```bash
 ./openblas_kernel 256 1
 # <output_time>
-```
-
-### [OPTIONAL] Setting up the Python environment and MLKAPS
-
-If you have already install MLKAPS, please ignore this section.
-Ensure you have a recent version of python 3 installed, along with pip and `virtualenv`
-
-**Fedora**
-
-```sh
-sudo dnf install python3 python3-pip python3-virtualenv
-```
-
-Then, install all the required packages along with MLKAPS using:
-
-```bash
-export MLKAPS_PATH=/path/to/mlkaps
-./_setup_all.sh
 ```
 
 ### Stabilizing your environment
@@ -104,8 +88,7 @@ This ensures the kernel runs on the P-cores and that OpenMP correctly dispatches
 We provide the following files to run the experiment:
 
 - `run_all.sh` This is the main entry point of the experiment. It runs MLKAPS and performs additional experiments to validate MLKAPS results.
-- `config_mlkaps_template.json` MLKAPS configuration files, describing the experiment. Note that we use `@max_threads` as a placeholder for the maximum number of threads to explore. **You should not overwite this placeholder, it will be done automatically.**
-- `setup_all.sh` This file ensures the kernel is compiled and installs all python dependencies.
+- `config_mlkaps_template.json` MLKAPS configuration file, describing the experiment. Note that we use `@max_threads` as a placeholder for the maximum number of threads to explore. **You should not overwite this placeholder, it will be done automatically.**
 - `exploration.py` Performs an exhaustive search on the design space and validates MLKAPS results
 - `templatize.py` Refreshes the template configuration with the actual number of threads
 

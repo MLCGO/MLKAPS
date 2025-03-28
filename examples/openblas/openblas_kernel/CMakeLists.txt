@@ -2,8 +2,15 @@ cmake_minimum_required(VERSION 3.16)
 project(openblas_kernel)
 
 # Find the multi-threaded OpenBLAS version explicitly
-find_library(OPENBLAS_LIB NAMES openblas PATHS /usr/lib/x86_64-linux-gnu /usr/local/lib /opt/OpenBLAS/lib)
-find_path(OPENBLAS_INCLUDE_DIR cblas.h PATHS /usr/include/x86_64-linux-gnu/openblas-pthread /usr/local/include /opt/OpenBLAS/include)
+find_library(OPENBLAS_LIB NAMES openblaso PATHS 
+    /usr/lib/x86_64-linux-gnu /usr/local/lib /opt/OpenBLAS/lib # Ubuntu
+    /usr/lib/ # Fedora
+)
+
+find_path(OPENBLAS_INCLUDE_DIR cblas.h PATHS 
+    /usr/include/x86_64-linux-gnu/openblas-pthread /usr/local/include /opt/OpenBLAS/include # Ubuntu
+    /usr/include/openblas # Fedora
+)
 
 find_package(OpenMP REQUIRED)
 
