@@ -33,36 +33,49 @@ if(OPENBLAS_TARGET_FALLBACK)
     find_library(OPENBLAS_LIB
         NAMES
             openblas # Ubuntu uses the same name
-	    openblaso # Fedora name of the openmp version
+	        openblaso # Fedora name of the openmp version
     	PATHS
             /usr/lib/x86_64-linux-gnu/openblas-openmp/ # ubuntu openmp
             /usr/lib64/ # fedora openmp
-	NO_DEFAULT_PATH  # Prevent picking system default first
+	        NO_DEFAULT_PATH  # Prevent picking system default first
     )
     find_path(OPENBLAS_INCLUDE_DIR
         NAMES cblas.h
         PATHS
             /usr/include/x86_64-linux-gnu/openblas-openmp # ubuntu openmp
             /usr/include/openblas # fedora openmp
-	NO_DEFAULT_PATH  # Prevent picking system default first
+	        NO_DEFAULT_PATH  # Prevent picking system default first
     )
     if(NOT OPENBLAS_LIB)
-        message(FATAL_ERROR "OpenBLAS library not found. Install openblas-openmp (Fedora) or libopenblas-openmp-dev (Ubuntu)")
+        message(FATAL_ERROR "OpenBLAS library not found. Install openblas-openmp 
+                (Fedora) or libopenblas-openmp-dev (Ubuntu)")
     endif()
+
     if(NOT OPENBLAS_INCLUDE_DIR)
-        message(FATAL_ERROR "OpenBLAS headers not found. Install openblas-devel (Fedora) or libopenblas-dev (Ubuntu)")
+        message(FATAL_ERROR "OpenBLAS headers not found. 
+                Install openblas-devel (Fedora) or libopenblas-dev (Ubuntu)")
     endif()
     message(STATUS "Manual OpenBLAS: Library=${OPENBLAS_LIB}, Include=${OPENBLAS_INCLUDE_DIR}")
 endif()
 
 # Set optimization and OpenMP flags
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
+    if(COMPILER_SUPPORTS_MARCH_NATIVE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+    endif()
 endif()
+
 if(OpenMP_C_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 endif()
+
 if(OpenMP_CXX_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
