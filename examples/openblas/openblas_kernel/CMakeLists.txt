@@ -9,9 +9,6 @@ find_package(OpenBLAS
         /usr/lib64/cmake/openblas                                # Fedora path
 )
 
-# Find OpenMP
-find_package(OpenMP REQUIRED)
-
 # Check what OpenBLAS provides
 if(OpenBLAS_FOUND)
     message(STATUS "Found OpenBLAS: ${OpenBLAS_DIR}")
@@ -58,7 +55,10 @@ if(OPENBLAS_TARGET_FALLBACK)
     message(STATUS "Manual OpenBLAS: Library=${OPENBLAS_LIB}, Include=${OPENBLAS_INCLUDE_DIR}")
 endif()
 
-# Set optimization and OpenMP flags
+# Find OpenMP
+find_package(OpenMP REQUIRED)
+
+# Set optimization
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
@@ -70,14 +70,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
     endif()
-endif()
-
-if(OpenMP_C_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-endif()
-
-if(OpenMP_CXX_FOUND)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
 # Rules to build the OpenBLAS example
