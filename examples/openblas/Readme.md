@@ -51,6 +51,14 @@ And executing the kernel on a small test:
 # <output_time>
 ```
 
+**We recommend running the following to ensure you are using the OpenMP version of OpenBLAS:**
+```bash
+./test_parallel
+# ...
+# OpenBLAS is compiled using OpenMP.
+# ...
+```
+
 ### Stabilizing your environment
 
 The results of this experiment will depend on your hardware and software environment. Please ensure you have a clean and stable machine for the run.
