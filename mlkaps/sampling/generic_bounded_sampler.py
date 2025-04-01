@@ -1,11 +1,9 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
-"""
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 
-"""
 Contain the definition for static samplers that only need an array containing the bounds of each variable.
 """
 
@@ -18,9 +16,7 @@ from .static_sampler import StaticSampler
 from .variable_mapping import map_float_to_variables
 
 
-def convert_variables_bounds_to_numeric(
-    variables_types, variables_values, include_high_bound=False
-):
+def convert_variables_bounds_to_numeric(variables_types, variables_values, include_high_bound=False):
     """
     Convert a dictionary of variables bounds to a dictionary of numeric bounds:
     Categorical variables are converted to [0, n_categories - 1] if include_high_bound is False,
@@ -115,9 +111,7 @@ class GenericBoundedSampler(StaticSampler):
 
         if self.variables_types is None or self.variables_values is None:
             return None
-        return convert_variables_bounds_to_numeric(
-            self.variables_types, self.variables_values
-        )
+        return convert_variables_bounds_to_numeric(self.variables_types, self.variables_values)
 
     def set_variables(self, variables_types, variables_values, mask=None):
         """
@@ -181,9 +175,7 @@ class GenericBoundedSampler(StaticSampler):
         random_samples = self._generate_samples_from_bounds(n_samples)
 
         # Map the generated samples with numeric features back to the original variables types
-        translated_columns = map_float_to_variables(
-            random_samples, self.variables_types, self.variables_values
-        )
+        translated_columns = map_float_to_variables(random_samples, self.variables_types, self.variables_values)
 
         columns = sorted(self.bounds.keys())
 

@@ -1,23 +1,10 @@
 #!/usr/bin/env python3
-
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
-
-"""
-This file implements the main MLKAPS pipeline, including:
-
-1. Configuration parsing
-2. (Adaptive) sampling
-3. Modeling 
-4. (Optionnal) Validation
-5. Optimization
-6. Clustering
-"""
-
 
 import json
 import pathlib
@@ -28,12 +15,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 import pandas as pd
 import logging
 import time
-
 from mlkaps.clustering import generate_clustering_models
-from mlkaps.clustering.clustering_visualization import (
-    plot_all_decisions_maps,
-    plot_all_decision_tree,
-)
 from mlkaps.codegen.codegen import decision_trees_to_c
 from mlkaps.configuration import ExperimentConfig
 from mlkaps.modeling.modeling import build_main_surrogates
@@ -43,6 +25,7 @@ from mlkaps.optimization.genetic_optimizer import (
 )
 from mlkaps.sample_collection.kernel_sampling import sample_kernel
 from ._utils import setup_logging, add_file_logger, ensure_not_root
+import os
 
 
 def run_clustering(args, experiment_config, optim_results):
@@ -65,8 +48,8 @@ def run_clustering(args, experiment_config, optim_results):
     # Properly re-implement it
     clustered_models = generate_clustering_models(experiment_config, optim_results)
 
-    plot_all_decisions_maps(experiment_config, optim_results, clustered_models)
-    plot_all_decision_tree(experiment_config, clustered_models)
+    # plot_all_decisions_maps(experiment_config, optim_results, clustered_models)
+    # plot_all_decision_tree(experiment_config, clustered_models)
 
     # Experimental
     decision_trees_to_c(experiment_config, clustered_models)
@@ -96,15 +79,11 @@ def run_optimization(args, config_dict, experiment_config, surrogate_models):
     qr = args.quick_restart
     has_quick_restart = qr in ["clustering"]
 
-    genetic_config = GeneticOptimizerConfig.from_configuration_dict(
-        config_dict, experiment_config
-    )
+    genetic_config = GeneticOptimizerConfig.from_configuration_dict(config_dict, experiment_config)
 
     optim_results = {}
     if has_quick_restart:
-        logging.info(
-            "Quick-restart: Loading the optimization results from previous run"
-        )
+        logging.info("Quick-restart: Loading the optimization results from previous run")
         path = pathlib.Path(experiment_config.output_directory / "optim.csv")
         if not path.exists():
             raise FileNotFoundError(path)
@@ -159,9 +138,7 @@ def run_kernel_sampling(args, experiment_config, config_dict):
 
     if has_quick_restart:
         logging.info("Quick-restart: Loading the samples from previous run")
-        path = (
-            experiment_config.output_directory / "kernel_sampling/samples.csv"
-        ).resolve()
+        path = (experiment_config.output_directory / "kernel_sampling/samples.csv").resolve()
         if not path.exists():
             raise FileNotFoundError(path)
         df = pd.read_csv(path)
@@ -185,9 +162,7 @@ def parse_configuration_file(config_path, args):
     with open(config_path, "r") as config_file:
         config_dict = json.load(config_file)
 
-    experiment_config = ExperimentConfig.from_dict(
-        config_dict, Path(config_path).parent, args.output_directory
-    )
+    experiment_config = ExperimentConfig.from_dict(config_dict, Path(config_path).parent, args.output_directory)
 
     return config_dict, experiment_config
 
@@ -209,17 +184,11 @@ def run_pipeline(args, config_dict, experiment_config):
         logging.info("Auto-tuning pipeline started")
         begin = time.time()
 
-        kernel_sampling_results = run_kernel_sampling(
-            args, experiment_config, config_dict
-        )
+        kernel_sampling_results = run_kernel_sampling(args, experiment_config, config_dict)
 
-        surrogate_models = create_surrogate_models(
-            args, kernel_sampling_results, experiment_config
-        )
+        surrogate_models = create_surrogate_models(args, kernel_sampling_results, experiment_config)
 
-        optim_results = run_optimization(
-            args, config_dict, experiment_config, surrogate_models
-        )
+        optim_results = run_optimization(args, config_dict, experiment_config, surrogate_models)
 
         run_clustering(args, experiment_config, optim_results)
         end = time.time()
@@ -278,6 +247,13 @@ def parse_arguments(argv, configuration_required=False):
     if args.quick_restart is not None:
         logging.info(f"Trying to quick-restart from '{args.quick_restart}'")
 
+    # We usually don't allow running MLKAPS in sudo mode
+    # However, it may be required when running MLKAPS inside a docker
+    # And when inside github workflows
+    # This check for an environment variable to bypass the check
+    if os.environ.get("MLKAPS_IS_IN_DOCKER") == "True":
+        args.allow_root = True
+
     return args
 
 
@@ -311,9 +287,7 @@ def run_from_config(argv, config_dict, working_dir, output_directory=None):
     args = parse_arguments(argv)
     maybe_enable_debug(args)
 
-    experiment_config = ExperimentConfig.from_dict(
-        config_dict, working_dir, output_directory=output_directory
-    )
+    experiment_config = ExperimentConfig.from_dict(config_dict, working_dir, output_directory=output_directory)
 
     setup_output_dir(config_dict, experiment_config, args)
     run_pipeline(args, config_dict, experiment_config)

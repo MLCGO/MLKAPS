@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import os.path
@@ -72,9 +72,7 @@ def plot_all_decisions_maps(
         return
 
     for design_feature in configuration.design_parameters:
-        plot_decision_map(
-            clustering_model, configuration, optimization_results, design_feature
-        )
+        plot_decision_map(clustering_model, configuration, optimization_results, design_feature)
 
 
 def _create_colour_map(configuration, design_param):
@@ -95,9 +93,7 @@ def _create_colour_map(configuration, design_param):
     return cmap
 
 
-def plot_decision_map(
-    clustering_model, configuration, optimization_results, design_param
-):
+def plot_decision_map(clustering_model, configuration, optimization_results, design_param):
     """
     Plot a single decision map as a heatmap/colormap with a scatter of the original optimization
     results.
@@ -113,14 +109,10 @@ def plot_decision_map(
     color_map = _create_colour_map(configuration, design_param)
 
     # Plot the background colormap
-    _plot_decision_colormap(
-        clustering_model, configuration, design_param, optimization_results, color_map
-    )
+    _plot_decision_colormap(clustering_model, configuration, design_param, optimization_results, color_map)
 
     # Plot the original optimization results as a scatter plot
-    _scatter_optimization_results(
-        ax, color_map, configuration, design_param, optimization_results
-    )
+    _scatter_optimization_results(ax, color_map, configuration, design_param, optimization_results)
 
     # Ensure the axis covers the entire range of the input features
     _set_axis_range(ax, configuration)
@@ -140,10 +132,7 @@ def _set_plot_title(ax, configuration, design_param):
     param_title = ""
     for k, v in clustering_parameters.items():
         param_title += k + " = " + str(v) + " "
-    title = (
-        f'Clustering model for parameter "{design_param}"\n'
-        f"({clustering_method} - {param_title})"
-    )
+    title = f'Clustering model for parameter "{design_param}"\n' f"({clustering_method} - {param_title})"
     ax.set_title(title)
 
 
@@ -154,9 +143,7 @@ def _save_plot(configuration, design_param):
 
     # Ensure the output directory (and parents) exists
     os.makedirs(configuration.output_directory / "clustering/", exist_ok=True)
-    output_path = (
-        configuration.output_directory / f"clustering/clustering_" f"{design_param}.pdf"
-    )
+    output_path = configuration.output_directory / f"clustering/clustering_" f"{design_param}.pdf"
     plt.tight_layout()
     plt.savefig(output_path, bbox_inches="tight")
 
@@ -166,9 +153,7 @@ def _set_axis_range(ax, configuration):
     input_parameters = configuration.input_parameters
 
     ax.set_xlabel(input_parameters[0])
-    ax.set_xlim(
-        features_values[input_parameters[0]][0], features_values[input_parameters[0]][1]
-    )
+    ax.set_xlim(features_values[input_parameters[0]][0], features_values[input_parameters[0]][1])
 
     if len(input_parameters) == 2:
         ax.set_ylabel(input_parameters[1])
@@ -181,9 +166,7 @@ def _set_axis_range(ax, configuration):
         plt.legend()
 
 
-def _scatter_optimization_results(
-    ax, color_map, configuration, design_param, optimization_results
-):
+def _scatter_optimization_results(ax, color_map, configuration, design_param, optimization_results):
     feature_values = configuration["parameters"]["features_values"][design_param]
     y = optimization_results[design_param]
     values_y = np.unique(y)
@@ -192,10 +175,7 @@ def _scatter_optimization_results(
     feature_type = configuration.parameters_type[design_param]
     input_parameters = configuration.input_parameters
     if feature_type in ["Categorical", "Boolean"]:
-        inverse_value_map = {
-            v: k
-            for k, v in configuration["parameters"]["feature_map"][design_param].items()
-        }
+        inverse_value_map = {v: k for k, v in configuration["parameters"]["feature_values"][design_param].items()}
         y = np.vectorize(inverse_value_map.get)(y)
 
         if len(input_parameters) == 2:
@@ -244,10 +224,7 @@ def _format_clustering_predictions(configuration, design_param, predictions, x_s
         predictions = np.array([np.round(x) for x in predictions])
     elif feature_type in ["Categorical", "Boolean"]:
         # We need to map categorial values to their index
-        inverse_value_map = {
-            v: k
-            for k, v in configuration["parameters"]["feature_map"][design_param].items()
-        }
+        inverse_value_map = {v: k for k, v in configuration["parameters"]["feature_values"][design_param].items()}
 
         predictions = np.vectorize(inverse_value_map.get)(predictions)
 
@@ -256,9 +233,7 @@ def _format_clustering_predictions(configuration, design_param, predictions, x_s
     return predictions.reshape(x_shape)
 
 
-def _get_clustering_predictions(
-    clustering_model, configuration, design_param, sampling_points
-):
+def _get_clustering_predictions(clustering_model, configuration, design_param, sampling_points):
     """
     Run the prediction model on the sampling points to get the clustering predictions
     We can then use those predictions to build a colormap
@@ -282,44 +257,32 @@ def _get_clustering_predictions(
         y_max = sampling_points[input_parameters[1]].max() + 1
 
         y_npoints = min(100, int(np.ceil(y_max)))
-        x_space, y_space = np.meshgrid(
-            np.linspace(x_min, x_max, x_npoints), np.linspace(y_min, y_max, y_npoints)
-        )
+        x_space, y_space = np.meshgrid(np.linspace(x_min, x_max, x_npoints), np.linspace(y_min, y_max, y_npoints))
         # meshgrid(...) outputs a 2D array, while the clustering model expects
         # a 1d array
         model_input = np.c_[x_space.ravel(), y_space.ravel()]
         samples = [x_space, y_space]
     else:
-        raise ValueError(
-            f"Clustering error, expected 1D/2D input space, got {len(input_parameters)}D"
-        )
+        raise ValueError(f"Clustering error, expected 1D/2D input space, got {len(input_parameters)}D")
     model = clustering_model[design_param]
     predictions = model.predict(model_input)
     return predictions, samples
 
 
-def _get_formatted_clustering_predictions(
-    configuration, clustering_model, design_param, sampling_points
-):
+def _get_formatted_clustering_predictions(configuration, clustering_model, design_param, sampling_points):
     """
     Build a prediction grid that can be used for plotting the colormap
     First find the predictions,
     then format the samples as a grid that can be used for plotting
     """
-    predictions, samples = _get_clustering_predictions(
-        clustering_model, configuration, design_param, sampling_points
-    )
+    predictions, samples = _get_clustering_predictions(clustering_model, configuration, design_param, sampling_points)
 
-    predictions = _format_clustering_predictions(
-        configuration, design_param, predictions, samples[0].shape
-    )
+    predictions = _format_clustering_predictions(configuration, design_param, predictions, samples[0].shape)
 
     return samples, predictions
 
 
-def _plot_decision_colormap(
-    clustering_model, configuration, design_param, optimization_results, color_map
-):
+def _plot_decision_colormap(clustering_model, configuration, design_param, optimization_results, color_map):
     """
     Plot a colormap using colormesh
     """
@@ -336,9 +299,7 @@ def _plot_decision_colormap(
         if feature_type in ["Categorical", "Boolean"]:
             plt.pcolormesh(samples[0], samples[1], predictions, cmap=color_map, alpha=1)
         else:
-            feature_values = configuration["parameters"]["features_values"][
-                design_param
-            ]
+            feature_values = configuration["parameters"]["features_values"][design_param]
             plt.pcolormesh(
                 samples[0],
                 samples[1],
@@ -353,6 +314,4 @@ def _plot_decision_colormap(
             cbar.ax.set_title("parameter_1")
 
     elif len(input_parameters) == 1:
-        plt.scatter(
-            samples[0], predictions, color="b", alpha=0.4, label="testing predictions"
-        )
+        plt.scatter(samples[0], predictions, color="b", alpha=0.4, label="testing predictions")

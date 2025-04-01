@@ -1,25 +1,17 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
-"""
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 
-"""
 Grid sampling using a samples count per dimensions
 """
 
-import itertools
-
 import numpy as np
 import pandas as pd
-from deprecated import deprecated
-
 from .static_sampler import StaticSampler
 
 
-# The current implementation uses itertools and generates the full space at once, which is highly costly for large samples count
-@deprecated("Not maintained, may not work or be extremely slow.")
 class GridSampler(StaticSampler):
     """
     A sampler that implements grid sampling using a number of samples per dimensions
@@ -32,13 +24,10 @@ class GridSampler(StaticSampler):
     def _sample_linear_space(n_samples, variable_values, variable_type):
         dtype = "int" if variable_type == "int" else "float"
 
-        return list(
-            np.linspace(variable_values[0], variable_values[1], n_samples, dtype=dtype)
-        )
+        return list(np.linspace(variable_values[0], variable_values[1], n_samples, dtype=dtype))
 
     def sample(self, n_samples: dict) -> pd.DataFrame:
         """
-
         Sample in a grid fashion.
 
         :param n_samples: A dict containing feature: n_samples for all variables to sample for
@@ -48,31 +37,25 @@ class GridSampler(StaticSampler):
         :rtype: pd.DataFrame
         """
 
-        to_iter = []
-
-        for variable, variable_type in self.variables_types.items():
-            # Aliases for readability
-            variable_values = self.variables_values[variable]
-
-            # Only two values for categorical/boolean features
+        def generate_grid_samples(variable_values, variable_type, n_samples):
             if variable_type in ["Categorical", "Boolean"]:
-                to_iter.append(variable_values)
-            # Integers/floats for continuous features
+                return variable_values
             elif variable_type in ["int", "float"]:
-                feature_nsample = n_samples[variable]
-                points = self._sample_linear_space(
-                    feature_nsample, variable_values, variable_type
-                )
-                to_iter.append(points)
+                return self._sample_linear_space(n_samples, variable_values, variable_type)
             else:
-                raise ValueError("GridSampler - Unknown feature type")
+                raise ValueError(f"Unknown variable type: {variable_type}")
 
-        # Create a dataframe containing all the samples
-        # that needs to be executed
-        # Fixme: this is the biggest bottleneck in the grid sampler, where we must
-        # create a dataframe from the product of all dimensions of the grid
-        # This is really slow with a large number of dimensions/samples per dimension
-        res = pd.DataFrame(list(itertools.product(*to_iter)))
-        res.columns = self.variables_values.keys()
+        variables = list(self.variables_types.keys())
+        grids = [
+            generate_grid_samples(self.variables_values[var], self.variables_types[var], n_samples[var]) for var in variables
+        ]
 
-        return res
+        def recursive_sample(grids, depth=0, current_sample=[]):
+            if depth == len(grids):
+                yield current_sample
+                return
+            for value in grids[depth]:
+                yield from recursive_sample(grids, depth + 1, current_sample + [value])
+
+        samples = list(recursive_sample(grids))
+        return pd.DataFrame(samples, columns=variables)

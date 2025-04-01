@@ -1,18 +1,20 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
-import unittest
+import pytest
 from mlkaps.sampling.adaptive.multilevel_hvs import MultilevelHVS
 import pandas as pd
 
 
 def _run_simple_multilevel_hvs(features_types, features_values, levels):
     sampler = MultilevelHVS(levels, features_types, features_values)
-    f = lambda df: pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+
+    def f(df):
+        return pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
 
     data = sampler.sample(60, None, f)
     data = sampler.sample(10, data, f)
@@ -20,7 +22,7 @@ def _run_simple_multilevel_hvs(features_types, features_values, levels):
     assert len(data) == 70
 
 
-class TestMultilevelHVS(unittest.TestCase):
+class TestMultilevelHVS:
     def test_can_run(self):
         features_types = {"a": "int", "b": "int"}
         features_values = {"a": [0, 5], "b": [-5, 0]}
@@ -50,6 +52,7 @@ class TestMultilevelHVS(unittest.TestCase):
         _run_simple_multilevel_hvs(features_types, features_values, levels)
 
     def test_validate_multilevel_hvs(self, tmp_path):
+
         features_types = {"x": "int", "optim": "int"}
         features_values = {"x": [0, 300], "optim": [0, 200]}
         levels = [["x"], ["optim"]]
@@ -72,7 +75,9 @@ class TestMultilevelHVS(unittest.TestCase):
                     return 10
 
         sampler = MultilevelHVS(levels, features_types, features_values)
-        f = lambda df: pd.concat([df, df.apply(eval_features, axis=1)], axis=1)
+
+        def f(df):
+            return pd.concat([df, df.apply(eval_features, axis=1)], axis=1)
 
         data = sampler.sample(30, None, f)
         import matplotlib.pyplot as plt
@@ -97,8 +102,8 @@ class TestMultilevelHVS(unittest.TestCase):
                 )
                 ax.add_patch(rect)
 
-        fig.savefig(tmp_path + "/test.png")
+        fig.savefig(tmp_path / "test.png")
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pytest.main()

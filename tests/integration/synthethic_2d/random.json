@@ -38,7 +38,7 @@
     },
     "sampler": "random",
     "sampler_parameters": {
-      "nsamples": 1000
+      "nsamples": 100
     }
   },
   "MODELING": {
@@ -59,14 +59,14 @@
         "sampling_method": "grid"
       },
       "sample_count": {
-        "x": 4,
-        "y": 4
+        "x": 2,
+        "y": 2
       }
     },
     "optimization_method": "genetic",
     "optimization_parameters": {
       "evolution": {
-        "pop_size": 30
+        "pop_size": 20
       },
       "termination": {
         "time": "00:00:5"

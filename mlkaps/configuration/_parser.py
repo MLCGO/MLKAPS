@@ -1,13 +1,14 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import os
 from pathlib import Path
 from deprecated import deprecated
+import numpy as np
 
 from ._parsing_helpers import set_if_defined
 
@@ -33,17 +34,13 @@ class ParserError(Exception):
 # Parse the visualization section of the json section if any
 # Otherwise, create a blank visualization section with default parameters
 @deprecated
-def _maybe_parse_visualization(
-    configuration, mapped_section, json_section, output_path="", prefix="", dpi=100
-):
+def _maybe_parse_visualization(configuration, mapped_section, json_section, output_path="", prefix="", dpi=100):
     mapped_section["visualization"] = {}
     visu = mapped_section["visualization"]
 
     exp = configuration.output_directory()
     # If the output path is not absolute, create a new directory
-    visu["output_path"] = (
-        exp + output_path if not os.path.isabs(output_path) else output_path
-    )
+    visu["output_path"] = exp + output_path if not os.path.isabs(output_path) else output_path
     visu["prefix"] = prefix
     visu["dpi"] = dpi
 
@@ -58,9 +55,7 @@ def _maybe_parse_visualization(
 
     json_section = json_section["visualization"]
 
-    special_features = [
-        i for i in configuration.get_kernel_input_features() if i in json_section
-    ]
+    special_features = [i for i in configuration.get_kernel_input_features() if i in json_section]
     for param in special_features:
         feature_parameters = json_section[param]
         if "scale" in feature_parameters:
@@ -132,16 +127,27 @@ def parse_objectives(configuration, data_section):
 
     keys["objectives"] = experiment_section["objectives"]
 
-    keys["objectives_directions"] = experiment_section.get("directions", {})
+    keys["objectives_list"] = []
+    keys["objectives_directions"] = {}
+    keys["objectives_bounds"] = {}
 
-    for k in keys["objectives"]:
-        if k not in keys["objectives_directions"]:
-            keys["objectives_directions"][k] = "minimize"
+    # Check if keys["objectives"] is a list (support legacy objectives declaration without bounds and directions)
+    if isinstance(keys["objectives"], list):
+        for objective in keys["objectives"]:
+            # Assuming details are provided in another section or default values
+            keys["objectives_list"].append(objective)
+            keys["objectives_directions"][objective] = "minimize"  # Default direction
+            keys["objectives_bounds"][objective] = np.nan  # Default bound
+    elif isinstance(keys["objectives"], dict):
+        for objective, details in keys["objectives"].items():
+            keys["objectives_list"].append(objective)
+            keys["objectives_directions"][objective] = details.get("direction", "minimize")
+            keys["objectives_bounds"][objective] = details.get("bound", np.nan)
+    else:
+        raise Exception("Invalid format for objectives")
 
 
 def parse_modeling(configuration, json_data):
-    from mlkaps.modeling.modeling import ModelWrapper
-
     # Create a blank modeling section in the map
     configuration["modeling"] = {}
 

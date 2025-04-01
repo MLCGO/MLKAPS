@@ -1,13 +1,12 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import numpy as np
 import pandas as pd
-import os
 import pathlib
 from tqdm import tqdm
 import optuna
@@ -37,7 +36,8 @@ class OptunaModelTuner:
         :type inputs: pd.DataFrame
         :param labels: The label to fit the model for
         :type labels: pd.Series | Iterable
-        :param metric: A function (sklearn metric) that computes an error/score for the model, defaults to mean_absolute_error. This function will be minimized
+        :param metric: A function (sklearn metric) that computes an error/score for the model,
+        defaults to mean_absolute_error. This function will be minimized
         :type metric: Callable[[Iterable, Iterable], float], optional
         :param n_folds: The number of folds to use to compute the model score, defaults to 5
         :type n_folds: int, optional
@@ -74,9 +74,7 @@ class OptunaModelTuner:
         """
         raise NotImplementedError()
 
-    def _kfold_evaluate(
-        self, model: ModelWrapper
-    ) -> Generator[tuple[list[float], float], None, None]:
+    def _kfold_evaluate(self, model: ModelWrapper) -> Generator[tuple[list[float], float], None, None]:
         """Fit and evalaue the model using kfold. Yields the midway score after every fold.
 
         :param model: A fitted model
@@ -95,6 +93,11 @@ class OptunaModelTuner:
             model.fit(self.inputs.iloc[train_idx], self.labels.iloc[train_idx])
             predictions = model.predict(self.inputs.iloc[test_idx])
 
+            # In some weird cases, especially with low number of samples
+            # LightGBM can return NaN predictions
+            if np.isnan(predictions).any():
+                continue
+
             scores.append(self.metric(self.labels.iloc[test_idx], predictions))
             midway_score = np.mean(scores)
 
@@ -112,16 +115,23 @@ class OptunaModelTuner:
         parameters = self._get_hyperparameters(trial)
         model = self._build_model(parameters)
 
+        scores = None
         for scores, midway_score in self._kfold_evaluate(model):
             trial.report(midway_score, len(scores))
             if trial.should_prune():
                 raise optuna.TrialPruned()
 
-        return np.mean(scores)
+        # If the model only returned NaN predictions, return infinity
+        if scores is None or len(scores) == 0:
+            return np.inf
 
-    def run(
-        self, time_budget: int = 60, n_trials: int = None
-    ) -> tuple[ModelWrapper, dict]:
+        # If any of the scores is NaN, return infinity
+        res = np.mean(scores)
+        if np.isnan(res):
+            return np.inf
+        return res
+
+    def run(self, time_budget: int = 60, n_trials: int = None) -> tuple[ModelWrapper, dict]:
         """
         Run the optuna tuner until the time budget is expired or n_trials have been run, whichever comes first.
 
@@ -138,13 +148,9 @@ class OptunaModelTuner:
         trials_desc = f"{n_trials} trials" if n_trials is not None else None
         budget_desc = ", ".join(filter(None, [time_budget_desc, trials_desc]))
 
-        with tqdm(
-            desc=f"Running optuna for {budget_desc}", unit=" trial", leave=None
-        ) as pbar:
+        with tqdm(desc=f"Running optuna for {budget_desc}", unit=" trial", leave=None) as pbar:
             optuna.logging.set_verbosity(optuna.logging.WARNING)
-            study = optuna.create_study(
-                direction="minimize", pruner=optuna.pruners.SuccessiveHalvingPruner()
-            )
+            study = optuna.create_study(direction="minimize", pruner=optuna.pruners.SuccessiveHalvingPruner())
             self.study = study
             study.optimize(
                 self._objective,
@@ -162,9 +168,7 @@ class OptunaRecorder(OptunaModelTuner):
     Decorator that will dump the optuna study to a file
     """
 
-    def __init__(
-        self, wrapee: OptunaModelTuner, record_path: str | pathlib.Path | None = None
-    ):
+    def __init__(self, wrapee: OptunaModelTuner, record_path: str | pathlib.Path | None = None):
         """
         Initialize the recorder.
 
@@ -204,16 +208,11 @@ class OptunaRecorder(OptunaModelTuner):
         :rtype: pd.DataFrame
         """
         res = pd.DataFrame(
-            [
-                [session_id, i, v.value, len(self.tuner.inputs)]
-                for i, v in enumerate(study.get_trials())
-            ],
+            [[session_id, i, v.value, len(self.tuner.inputs)] for i, v in enumerate(study.get_trials())],
             columns=["training_id", "iteration", "score", "number_of_samples"],
         )
 
-        res = pd.concat(
-            [res, pd.DataFrame([v.params for v in study.get_trials()])], axis=1
-        )
+        res = pd.concat([res, pd.DataFrame([v.params for v in study.get_trials()])], axis=1)
         return res
 
     def _record(self, study: optuna.study):

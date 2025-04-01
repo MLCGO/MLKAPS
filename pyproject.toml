@@ -1,22 +1,30 @@
 [project]
 name = "mlkaps"
 description = "Machine Learning for Kernel accuracy and performance studies."
-version = "0.3.0.1"
+version = "0.4.0.0"
 
 dependencies = [
     "deprecated",
     "pytest",
     "scikit_learn",
     "matplotlib",
-    "numpy==1.26",
+    "numpy",
     "pandas",
-    "pymoo==0.6.1.1",
+    "pymoo",
     "scipy",
     "smt",
     "tqdm",
     "lightgbm",
-    "xgboost"
+    "xgboost",
+    "optuna",
+    "psutil",
+    "flit-core",
+    "tk",
+    "sphinx-autoapi",
+    "sphinx_rtd_theme"
 ]
+
+
 
 [project.scripts]
 mlkaps = "mlkaps:MLKaps.run_from_args"
@@ -24,3 +32,18 @@ mlkaps = "mlkaps:MLKaps.run_from_args"
 [build-system]
 build-backend = "flit_core.buildapi"
 requires = ["flit_core >=3.7,<4"]
+
+[tool.pytest.ini_options]
+addopts = "-v --doctest-modules --import-mode=importlib"
+testpaths = ["tests", "mlkaps"]
+
+[tool.black]
+line-length = 127
+exclude = '''(
+    /(
+        .git
+        | __pycache__
+        | build
+        | dist
+    )/
+)'''

@@ -43,15 +43,15 @@
     },
     "sampler": "random",
     "sampler_parameters": {
-      "nsamples": 1000
+      "nsamples": 100
     }
   },
   "MODELING": {
     "modeling_method": "optuna",
     "parameters": {
       "model_name": "lightgbm",
-      "n_trials": 128,
-      "time_budget": 60
+      "n_trials": 64,
+      "time_budget": 20
     }
   },
   "OPTIMIZATION": {
@@ -60,14 +60,14 @@
         "sampling_method": "grid"
       },
       "sample_count": {
-        "x": 4,
-        "y": 4
+        "x": 2,
+        "y": 2
       }
     },
     "optimization_method": "genetic",
     "optimization_parameters": {
       "evolution": {
-        "pop_size": 30
+        "pop_size": 20
       },
       "termination": {
         "time": "00:00:5"
