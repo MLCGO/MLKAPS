@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 from mlkaps.sample_collection.mono_kernel_executor import (
@@ -16,16 +16,17 @@ import pytest
 
 
 def _build_discard_sampler(functor=None, runner=None, pre_execution_callbacks=None):
+    def default_functor(x):
+        return {"r": x["id"]}
+
     if functor is None:
-        functor = lambda x: {"r": x["id"]}
+        functor = default_functor
 
     if runner is None:
         runner = MonoFunctionHarness(functor, expected_keys=["r"])
 
     resolver = DiscardResolver()
-    sampler = MonoKernelExecutor(
-        runner, resolver, pre_execution_callbacks=pre_execution_callbacks
-    )
+    sampler = MonoKernelExecutor(runner, resolver, pre_execution_callbacks=pre_execution_callbacks)
 
     return sampler
 
@@ -48,12 +49,13 @@ class TestMonoKernelSampler:
 
         sampler = _build_discard_sampler(functor=fail_on_even)
 
+        # On Windows astype(int) converts int64 to int32
+        # This is a Windows "feature" https://github.com/pandas-dev/pandas/issues/44925
+        # We need to add astype(int) to the assert below
         samples = pd.DataFrame({"id": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
         results = sampler(samples).astype(int)
 
-        assert results.equals(
-            pd.DataFrame({"id": [1, 3, 5, 7, 9], "r": [1, 3, 5, 7, 9]})
-        )
+        assert results.equals(pd.DataFrame({"id": [1, 3, 5, 7, 9], "r": [1, 3, 5, 7, 9]}).astype(int))
 
     def test_handles_full_failure(self):
         def fail(sample):
@@ -68,18 +70,19 @@ class TestMonoKernelSampler:
         assert all(results.columns == ["id", "r"])
 
     def test_raise_on_invalid_return(self):
+        def fail(sample):
+            return None
 
-        runner = lambda x: None
-
-        sampler = _build_discard_sampler(runner=runner)
+        sampler = _build_discard_sampler(runner=fail)
         samples = pd.DataFrame({"id": [1, 2, 3]})
 
         with pytest.raises(AttributeError):
             sampler(samples)
 
-        runner = lambda x: {}
+        def fail(sample):
+            return {}
 
-        sampler = _build_discard_sampler(runner=runner)
+        sampler = _build_discard_sampler(runner=fail)
         samples = pd.DataFrame({"id": [1, 2, 3]})
 
         with pytest.raises(AttributeError):
@@ -104,9 +107,7 @@ class TestMonoKernelSampler:
                 raise ValueError("Pre execution callback not called")
             return samples["id"]
 
-        sampler = _build_discard_sampler(
-            functor=functor, pre_execution_callbacks=[callback]
-        )
+        sampler = _build_discard_sampler(functor=functor, pre_execution_callbacks=[callback])
 
         samples = pd.DataFrame({"id": [1, 2, 3]})
         sampler(samples)
@@ -124,9 +125,7 @@ class TestMonoKernelSampler:
                 raise ValueError("Pre execution callback not called")
             return samples["id"]
 
-        sampler = _build_discard_sampler(
-            functor=functor, pre_execution_callbacks=[callback, callback2]
-        )
+        sampler = _build_discard_sampler(functor=functor, pre_execution_callbacks=[callback, callback2])
 
         samples = pd.DataFrame({"id": [1, 2, 3]})
         sampler(samples)

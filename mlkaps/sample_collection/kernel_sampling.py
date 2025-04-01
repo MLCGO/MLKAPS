@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import pathlib
@@ -26,9 +26,7 @@ from .subprocess_harness import MonoSubprocessHarness
 from .failed_run_resolver import DiscardResolver, ConstantResolver
 
 
-def _get_key_or_error(
-    cdict: dict, key: str, error_msg: str | None = None, default=None, fatal=True
-):
+def _get_key_or_error(cdict: dict, key: str, error_msg: str | None = None, default=None, fatal=True):
     if key not in cdict:
         error_msg = error_msg or f"Missing parameter '{key}'"
         res = default
@@ -43,9 +41,7 @@ def _get_key_or_error(
     return res
 
 
-def _make_path_absolute(
-    path: pathlib.Path | str, reference: pathlib.Path
-) -> pathlib.Path:
+def _make_path_absolute(path: pathlib.Path | str, reference: pathlib.Path) -> pathlib.Path:
     path = pathlib.Path(path)
 
     if path.is_absolute():
@@ -84,9 +80,7 @@ class _StaticSamplerInterfaceWrapper:
 
     def _build_sampler(self):
 
-        sampler = SamplerFactory(self.config).from_config(
-            self.sampler_type, self.config_dict.get("sampler_parameters", {})
-        )
+        sampler = SamplerFactory(self.config).from_config(self.sampler_type, self.config_dict.get("sampler_parameters", {}))
 
         if hasattr(sampler, "set_variables"):
             variables_types = self.config.parameters_type
@@ -187,9 +181,7 @@ class _GAAdaptiveInterfaceWrapper:
         # Compute the number of samples taken with GA at each iteration
         # Done either via a direct fixed number of samples or a fixed number of iterations
         if all([n_iterations is None, samples_per_iteration is None]):
-            msg = textwrap.indent(
-                f"Dictionnary:\n{pprint.pformat(self.config_dict)}\n", "\t=> "
-            )
+            msg = textwrap.indent(f"Dictionnary:\n{pprint.pformat(self.config_dict)}\n", "\t=> ")
             msg = f"Options 'n_iterations' and 'samples_per_iteration' are mutually exclusive\n{msg}"
             raise ValueError(msg)
         elif n_iterations is not None:
@@ -197,12 +189,8 @@ class _GAAdaptiveInterfaceWrapper:
             # by dividing the number of samples by the number of iterations
             samples_per_iteration = n_samples * (1 - bootstrap_ratio) / n_iterations
         elif samples_per_iteration is None:
-            msg = textwrap.indent(
-                f"Dictionnary:\n{pprint.pformat(self.config_dict)}\n", "\t=> "
-            )
-            msg = (
-                f"Neither 'n_iterations' or 'samples_per_iteration' were defined\n{msg}"
-            )
+            msg = textwrap.indent(f"Dictionnary:\n{pprint.pformat(self.config_dict)}\n", "\t=> ")
+            msg = f"Neither 'n_iterations' or 'samples_per_iteration' were defined\n{msg}"
             raise ValueError(msg)
         return samples_per_iteration
 
@@ -236,15 +224,11 @@ class _AdaptiveSamplerInterfaceWrapper:
 
         stopping_criteria = None
         if "stopping_criteria" in self.config_dict:
-            stopping_criteria = StoppingCriterionFactory.create_all_from_dict(
-                self.config_dict["stopping_criteria"]
-            )
+            stopping_criteria = StoppingCriterionFactory.create_all_from_dict(self.config_dict["stopping_criteria"])
 
         orchestrator_parameters = self.config_dict.get("orchestrator_parameters", {})
 
-        sampler = SamplerFactory(self.config).from_config(
-            self.sampler_type, self.config_dict.get("method_parameters", {})
-        )
+        sampler = SamplerFactory(self.config).from_config(self.sampler_type, self.config_dict.get("method_parameters", {}))
 
         variables_types = self.config.parameters_type
         variables_values = self.config.feature_values
@@ -298,8 +282,9 @@ class ExecutorFactory:
         timeout = _get_key_or_error(
             param,
             "timeout",
-            "No timeout defined for the kernel sampling module, defaulting to 600s\nSet 'timeout' to 'None' to disable timeout.",
-            default=600,
+            "No timeout defined for the kernel sampling module, defaulting to 30s\n"
+            "Set 'timeout' to 'None' to disable timeout.",
+            default=30,
             fatal=False,
         )
 
@@ -310,11 +295,10 @@ class ExecutorFactory:
 
     def _build_subprocess_runner(self, param):
 
-        kernel = _get_key_or_error(
-            param, "kernel", "Subprocess runner requires a 'kernel' parameter"
-        )
+        kernel = _get_key_or_error(param, "kernel", "Subprocess runner requires a 'kernel' parameter")
         kernel = _make_path_absolute(kernel, self.config.working_directory)
         objectives = self.config.objectives
+        bounds = self.config.objectives_bounds
         timeout = self._get_timeout(param)
         parameters_order = _get_key_or_error(
             param,
@@ -322,20 +306,16 @@ class ExecutorFactory:
             "Subprocess runner requires a 'parameters_order' parameter",
         )
 
-        res = MonoSubprocessHarness(objectives, kernel, parameters_order, timeout)
+        res = MonoSubprocessHarness(objectives, bounds, kernel, parameters_order, timeout)
         return res
 
     def _build_function_runner(self, param):
-        function = _get_key_or_error(
-            param, "function", "Function runner requires a 'function' parameter"
-        )
+        function = _get_key_or_error(param, "function", "Function runner requires a 'function' parameter")
 
         function = FunctionPath(function)
         # If the path is relative, then reference it to the working directory
         if function.is_source() and function.is_relative():
-            function.path = _make_path_absolute(
-                function.path, self.config.working_directory
-            )
+            function.path = _make_path_absolute(function.path, self.config.working_directory)
 
         objectives = self.config.objectives
         timeout = self._get_timeout(param)

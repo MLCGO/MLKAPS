@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import pathlib
@@ -12,10 +12,80 @@ from collections import namedtuple
 import multiprocessing
 from .common import KernelSamplingError
 import re
+import os
+import pickle
+
+
+def is_pickleable(obj):
+    try:
+        pickle.dumps(obj)
+    except Exception:
+        return False
+    return True
 
 
 _source_pattern = re.compile(r"^(?P<path>.+\.py):(?P<function>\S+)$")
 _module_pattern = re.compile(r"^(?P<path>(?:\w|\.)+)\.(?P<function>[^\s:]+)$")
+
+
+class Functor:
+    """
+    On Windows (os.name="nt"):
+
+        If we have a timeout, we create a subprocess.  All the objects that are passe
+        the subprocess are pickled. But there are numerous limitations on what functions
+        can get pickled, and in particular, functions that are imported from a source file
+        with importlib cannot be pickled.  For these functions, we need to pass the file and
+        function name to the subprocess, and re-import the function in the subprocess.
+
+        If we do not have a timeout, we do not create a subprocess.  In this case, we can
+        just call the function directly.
+
+    On Linux:
+        On Linux, we fork if have a timeout, and all the objects exist in the subprocess.
+        Nothing needs to pickled.  We only need the function.
+
+    """
+
+    def __init__(
+        self,
+        function: Callable,
+        callable_in_subprocess: bool = True,
+        module_path: str | None = None,
+        function_name: str | None = None,
+    ):
+
+        self._internal_fn = function
+
+        # these are needed for Windows
+        self.is_callable_in_subprocess = callable_in_subprocess
+        self._module_path = module_path
+        self._function_name = function_name
+
+    def is_callable(self):
+        # On Windows, this means there is path to calling the function, but we may
+        # hit a problem later if we try to call it in a subprocess
+        if os.name == "nt":
+            if callable(self._internal_fn):  # and is_pickleable(self._internal_fn):
+                return True
+            elif self._module_path is not None and self._function_name is not None:
+                return True
+            else:
+                return False
+        else:
+            return callable(self._internal_fn)
+
+    def get_callable_function(self):
+        if os.name == "nt" and not self.is_callable_in_subprocess:
+            # On Windows, loading this function here may cause problems if we try to call it in a subprocess
+            spec = importlib.util.spec_from_file_location(self._module_path, self._module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return getattr(module, self._function_name)
+        elif self._internal_fn is not None:
+            return self._internal_fn
+        else:
+            raise ValueError("No function to return")
 
 
 class FunctionPath:
@@ -40,9 +110,7 @@ class FunctionPath:
 
     def _make_path(self, path: str | pathlib.Path) -> str:
         # duck typing for pathlib.Path
-        if (resolve := getattr(path, "resolve", None)) is not None and callable(
-            resolve
-        ):
+        if (resolve := getattr(path, "resolve", None)) is not None and callable(resolve):
             return str(resolve())
         return path
 
@@ -94,7 +162,16 @@ class FunctionPath:
         :rtype: str
         """
         if self.is_source():
-            return self.path.split(":")[0]
+            split_name = self.path.split(":")
+            if os.name == "nt" and len(split_name) == 3:
+                # on Windows, the self.path will look like C:\path\to\file.py:function_name
+                drive, file_path, function_name = split_name
+                return f"{drive}:{file_path}"
+            elif len(split_name) == 2:
+                file_path, function_name = split_name
+                return file_path
+            else:
+                raise ValueError(f"Invalid path {self.path}")
         else:
             return self.path.rsplit(".", 1)[0]
 
@@ -117,27 +194,48 @@ class FunctionPath:
         :rtype: bool
         """
         res = self.to_function(none_on_failure=True)
-        return not res is None
+        return res is not None
 
     def _import_from_source(self) -> Callable:
         """
         Import the function from a file on disk
 
         :raises FileNotFoundError: Raised if the file does not exist
+        :raises Exception: if we cannot understand the colons in the path
         :return: A functor to the function
         :rtype: Callable
         """
-
-        module_path, function_name = self.path.split(":")
+        split_name = self.path.split(":")
+        if os.name == "nt" and len(split_name) == 3:
+            # on Windows, the self.path will look like C:\path\to\file.py:function_name
+            drive, file_path, function_name = split_name
+            module_path = f"{drive}:{file_path}"
+        elif len(split_name) == 2:
+            module_path, function_name = split_name
+        else:
+            raise ValueError(f"Invalid path {self.path}")
 
         if not pathlib.Path(module_path).exists():
             raise FileNotFoundError(f"Module {module_path} does not exist")
 
-        spec = importlib.util.spec_from_file_location(module_path, module_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        return getattr(module, function_name)
+        if os.name == "nt":
+            # On Windows, if we load the function now with spec_from_file_location, we will
+            # have a problem if we want to call it in a subprocess.
+            return Functor(
+                None,
+                callable_in_subprocess=False,
+                module_path=module_path,
+                function_name=function_name,
+            )
+        else:
+            try:
+                spec = importlib.util.spec_from_file_location(module_path, module_path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                fn = getattr(module, function_name)
+            except Exception:
+                raise
+            return Functor(fn)
 
     def _import_from_module(self) -> Callable:
         """
@@ -148,9 +246,14 @@ class FunctionPath:
         """
 
         module_path, function_name = self.path.rsplit(".", 1)
-        module = importlib.import_module(module_path)
 
-        return getattr(module, function_name)
+        try:
+            module = importlib.import_module(module_path)
+            functor = getattr(module, function_name)
+        except Exception:
+            raise
+
+        return Functor(functor)
 
     def to_function(self, none_on_failure=False):
         """
@@ -197,6 +300,13 @@ class FunctionPath:
         :return: Return true if the path corresponds to a python module
         :rtype: bool
         """
+        if os.name == "nt":
+            # on Windows, the self.path will look like C:\path\to\file.py:function_name
+            # if this path begins with a drive letter, split it off
+            path_list = self.path.split(":", 1)
+            if len(path_list) == 2 and len(path_list[0]) == 1 and path_list[0].isalpha():
+                return _module_pattern.match(path_list[1]) is not None
+
         return _module_pattern.match(self.path) is not None
 
     def is_relative(self) -> bool:
@@ -208,17 +318,22 @@ class FunctionPath:
         :rtype: bool
         """
         if self.is_source():
-            path = pathlib.Path(self.path.split(":")[0])
-            return not path.is_absolute()
+            split_name = self.path.split(":")
+            if os.name == "nt" and len(split_name) == 3:
+                # on Windows, the self.path will look like C:\path\to\file.py:function_name
+                drive, file_path, function_name = split_name
+                path = f"{drive}:{file_path}"
+                return not pathlib.Path(path).is_absolute()
+            elif len(split_name) == 2:
+                path, function_name = split_name
+                return not pathlib.Path(path).is_absolute()
+            else:
+                raise ValueError(f"Invalid path {self.path}")
 
         return ".." in self.path or self.path.startswith(".")
 
     def __repr__(self):
-        return (
-            f"FunctionPath({self.path=}" + f", {self._functor=})"
-            if self._functor is not None
-            else ")"
-        )
+        return f"FunctionPath({self.path=}" + f", {self._functor=})" if self._functor is not None else ")"
 
     def __str__(self):
         return f"[Function Path] <{self.path}>"
@@ -228,32 +343,62 @@ class FunctionTimeoutWrapper:
 
     def __init__(self, function: Callable[[dict], dict], timeout: float | None = None):
 
-        if not callable(function):
+        if not function.is_callable():
             raise ValueError(f"Function must be a callable object, received {function}")
 
         self.function = function
         self.timeout = timeout
 
-    def _start_subprocess(self, args, kwargs):
-        # Ensure that the process with either push the result to the queue, or an exception
-        def wrapper(queue, args, kwargs):
-            try:
-                queue.put(self.function(*args, **kwargs))
-            except Exception as e:
-                queue.put(e)
+    # On Windows, the wrapper function must be pickleable, so definition needs to be at top-level of class
+    # This function ensures that the process will either push the result to the queue, or raise an exception
+    def wrapper(self, queue, args, kwargs):
+        try:
+            functor = self.function.get_callable_function()
+            queue.put(functor(*args, **kwargs))
+        except Exception as e:
+            queue.put(e)
 
+    # On Windows, we will import the file in the subprocess.  It is important that we
+    # do not import the file in the parent process.  If we do import the file in the parent,
+    # we will not be able to pickle the functions.
+    def wrapper_from_file_location(self, queue, module_path, function_name, args, kwargs):
+        try:
+            spec = importlib.util.spec_from_file_location(module_path, module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            functor = getattr(module, function_name)
+            queue.put(functor(*args, **kwargs))
+        except Exception as e:
+            queue.put(e)
+
+    def _start_subprocess(self, args, kwargs):
         # Create a queue for the subprocess to push to
         queue = multiprocessing.Queue()
 
         # Start the subprocess and wait for timeout or finish
-        proc = multiprocessing.Process(
-            target=wrapper,
-            args=(
-                queue,
-                args,
-                kwargs,
-            ),
-        )
+        if os.name == "nt" and not self.function.is_callable_in_subprocess:
+            assert is_pickleable(self.wrapper_from_file_location), "wrapper not pickleable"
+            module_path = self.function._module_path
+            function_name = self.function._function_name
+            proc = multiprocessing.Process(
+                target=self.wrapper_from_file_location,
+                args=(
+                    queue,
+                    module_path,
+                    function_name,
+                    args,
+                    kwargs,
+                ),
+            )
+        else:
+            proc = multiprocessing.Process(
+                target=self.wrapper,
+                args=(
+                    queue,
+                    args,
+                    kwargs,
+                ),
+            )
         proc.start()
         return proc, queue
 
@@ -263,9 +408,7 @@ class FunctionTimeoutWrapper:
         # If exitcode is None, this means the function is still running and we must time out
         if proc.exitcode is None:
             proc.terminate()
-            raise TimeoutError(
-                f"Function timed out after {self.timeout} seconds\n{self=}"
-            )
+            raise TimeoutError(f"Function timed out after {self.timeout} seconds\n{self=}")
 
         # Else, we can get the output from the queue
         output = queue.get()
@@ -281,7 +424,9 @@ class FunctionTimeoutWrapper:
         try:
             proc, queue = self._start_subprocess(args, kwargs)
             output = self._join_subprocess(proc, queue)
-        except:
+        except Exception as e:
+            print("Exception in call_in_subprocess:", e)
+            print(self, args, kwargs)
             # Clean up the process if it is still running, even if we caught a KeyboardInterrupt or similar
             # base exception
             if proc is not None and proc.is_alive():
@@ -290,14 +435,17 @@ class FunctionTimeoutWrapper:
 
         return output
 
+    def _call_in_current_process(self, *args, **kwargs):
+        try:
+            return self.function.get_callable_function()(*args, **kwargs)
+        except Exception as e:
+            raise KernelSamplingError(f"Function execution failed\n{self=}") from e
+
     def __call__(self, *args, **kwargs):
         if self.timeout is not None:
             return self._call_in_subprocess(args, kwargs)
-
-        try:
-            return self.function(*args, **kwargs)
-        except Exception as e:
-            raise KernelSamplingError(f"Function execution failed\n{self=}") from e
+        else:
+            return self._call_in_current_process(*args, **kwargs)
 
     def __repr__(self):
         return f"FunctionTimeoutWrapper({self.function=}, {self.timeout=})"
@@ -314,14 +462,17 @@ class MonoFunctionHarness:
         expected_keys: list[str],
         timeout: float | None = None,
     ):
-        if isinstance(function, (pathlib.Path, str)):
-            function = FunctionPath(function).to_function()
-
-        if (to_function := getattr(function, "to_function", None)) is not None:
-            function = to_function()
-
         if not callable(function):
-            raise ValueError(f"Function must be a callable object, received {function}")
+            if isinstance(function, (pathlib.Path, str)):
+                function = FunctionPath(function).to_function()
+
+            if (to_function := getattr(function, "to_function", None)) is not None:
+                function = to_function()
+
+            if not function.is_callable():
+                raise ValueError(f"Function must be a callable object, received {function}")
+        else:
+            function = Functor(function)
 
         self.function = function
         self.timeout = timeout
@@ -330,14 +481,10 @@ class MonoFunctionHarness:
     def _verify_result(self, result):
 
         if not isinstance(result, dict):
-            raise KernelSamplingError(
-                f"Expected a dict as output, received {type(result)} ({result})"
-            )
+            raise KernelSamplingError(f"Expected a dict as output, received {type(result)} ({result})")
 
         if not all(k in result for k in self.expected_keys):
-            raise KernelSamplingError(
-                f"Expected keys {self.expected_keys} not found in result {result}"
-            )
+            raise KernelSamplingError(f"Expected keys {self.expected_keys} not found in result {result}")
 
     def __call__(self, sample: dict):
         res_type = namedtuple("FunctionRunnerOutput", ["data", "error", "timed_out"])

@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import textwrap
@@ -29,8 +29,8 @@ class _ProgressBarWrapper:
         # Else if the progress bar is a boolean, we create a new progress bar
         if progress_bar:
             self._progress_bar = tqdm(total=nsamples, desc="Sampling", leave=None)
-            self._closure = self.progress_bar.close
-            self._update = self.progress_bar.update
+            self._closure = self._progress_bar.close
+            self._update = self._progress_bar.update
         else:
             self._progress_bar = None
             self._closure = None
@@ -103,7 +103,7 @@ class MonoKernelExecutor:
                 n_failures += 1
                 self._log_error(result)
 
-                if n_failures > 10:
+                if n_failures > 100:
                     raise KernelSamplingError("Too many sampling failures, aborting")
 
             results.append(sample | result.data)
@@ -113,9 +113,7 @@ class MonoKernelExecutor:
 
         return results
 
-    def _decorate_and_resolve(
-        self, samples: pd.DataFrame, results: list[dict]
-    ) -> pd.DataFrame:
+    def _decorate_and_resolve(self, samples: pd.DataFrame, results: list[dict]) -> pd.DataFrame:
 
         # Copy the dtypes used in the samples
         dtypes = {col: dtype for col, dtype in samples.dtypes.items()}

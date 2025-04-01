@@ -1,11 +1,9 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
-"""
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 
-"""
 Define the base class for all sampler
 """
 
@@ -42,9 +40,7 @@ class Sampler:
     Base class for all samplers.
     """
 
-    def __init__(
-        self, variables_types=None, variables_values=None, variables_mask=None
-    ):
+    def __init__(self, variables_types=None, variables_values=None, variables_mask=None):
         """
         Initializes the sampler.
 
@@ -67,21 +63,16 @@ class Sampler:
 
     def _raise_if_variables_not_set(self):
         """
-        :raise SamplerError: Raise an exception if the variables are not set, or if the variables are empty (after masking for example).
+        :raise SamplerError: Raise an exception if the variables are not set,
+        or if the variables are empty (after masking for example).
         """
 
         if self.variables_values is None or self.variables_types is None:
-            raise SamplerError(
-                "The sampler variables (values and/or types) were not set!"
-            )
+            raise SamplerError("The sampler variables (values and/or types) were not set!")
         if len(self.variables_values) == 0 or len(self.variables_types) == 0:
-            raise SamplerError(
-                "The passed variables were empty, or all variables were masked out!"
-            )
+            raise SamplerError("The passed variables were empty, or all variables were masked out!")
 
-    def set_variables(
-        self, variables_types: dict, variables_values: dict, mask: list = None
-    ):
+    def set_variables(self, variables_types: dict, variables_values: dict, mask: list = None):
         """
         Sets the variables to be sampled.
 
@@ -113,6 +104,4 @@ class Sampler:
             return
 
         # Ensure that both dict contain the same keys (variables)
-        assert sorted(self.variables_types.keys()) == sorted(
-            self.variables_values.keys()
-        )
+        assert sorted(self.variables_types.keys()) == sorted(self.variables_values.keys())

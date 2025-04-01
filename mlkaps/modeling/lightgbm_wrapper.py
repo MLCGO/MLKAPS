@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 from mlkaps.modeling.model_wrapper import ModelWrapper
@@ -40,7 +40,8 @@ class LightGBMWrapper(ModelWrapper, wrapper_name="lightgbm"):
         """
 
         # LightGBM will complain if the DataFrame doesn't have the right dtypes
-        return df.astype(self.encoding)
+        res = df.astype(self.encoding)
+        return res
 
     def _fit(self, X, y):
         # Save the dtypes of the training dataset
@@ -92,9 +93,7 @@ class OptunaTunerLightgbm(OptunaModelTuner, model_name="lightgbm"):
             "feature_fraction": trial.suggest_float("feature_fraction", 0.1, 1.0),
             "num_leaves": trial.suggest_int("num_leaves", 2, 1024),
             "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
-            "min_child_samples": trial.suggest_int(
-                "min_child_samples", 1, min(512, len(self.inputs) - 1)
-            ),
+            "min_child_samples": trial.suggest_int("min_child_samples", 1, min(512, len(self.inputs) - 1)),
         }
 
         if len(self.inputs) > 10:

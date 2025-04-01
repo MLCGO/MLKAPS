@@ -1,11 +1,9 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
-"""
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 
-"""
 Definition of the GA-Adaptive sampling process, based on genetic algorithms
 """
 
@@ -18,9 +16,13 @@ from pymoo.core.mixed import (
     MixedVariableSampling,
 )
 from pymoo.optimize import minimize
+from pymoo.termination.collection import TerminationCollection
+from pymoo.termination.ftol import MultiObjectiveSpaceTermination
+from pymoo.termination.robust import RobustTermination
+from pymoo.termination import get_termination
+
 from tqdm import tqdm
 from typing import Callable
-
 
 from mlkaps.configuration import ExperimentConfig
 from mlkaps.modeling import OptunaTunerLightgbm, SurrogateFactory
@@ -29,17 +31,10 @@ from . import HVSampler
 from .. import SamplerError
 from .. import RandomSampler, LhsSampler
 import logging
-
-
-import pymoo.termination
-from tqdm import tqdm
-import os
-import logging
 import time
-from pymoo.termination.collection import TerminationCollection
-from pymoo.termination.ftol import MultiObjectiveSpaceTermination
-from pymoo.termination.robust import RobustTermination
-from pymoo.termination import get_termination
+
+
+from mlkaps.modeling.encoding import encode_dataframe
 
 
 class GAAdaptiveSampler:
@@ -121,10 +116,7 @@ class GAAdaptiveSampler:
         :raise SamplerError: If the sampler was built with incorrect parameters
         """
 
-        if (
-            self.samples_per_iteration > self.n_samples
-            or self.samples_per_iteration < 1
-        ):
+        if self.samples_per_iteration > self.n_samples or self.samples_per_iteration < 1:
             raise SamplerError("samples_per_iteration must be between 1 and n_samples")
 
         if self.bootstrap_ratio > 1 or self.bootstrap_ratio < 0:
@@ -186,7 +178,8 @@ class GAAdaptiveSampler:
 
         logging.info(f"Found samples at '{self.output_path}', quick-restarting")
         logging.warning(
-            f"GA-Adaptive will quick-restart by default, this is currently not configurable\nPlease delete '{self.output_path} to skip quick-restart."
+            f"GA-Adaptive will quick-restart by default, this is currently not configurable\n"
+            f"Please delete '{self.output_path} to skip quick-restart."
         )
         loaded_samples = pd.read_csv(self.output_path)
         return loaded_samples
@@ -204,21 +197,17 @@ class GAAdaptiveSampler:
         return self._sample_kernel(lhs_samples)
 
     def _resampling_loop(self, samples, pbar) -> pd.DataFrame:
-        pbar.set_description("GA-Adaptive")
+        pbar.set_description("GA-Adaptive-Random")
 
         final_ratio_delta = self.final_ga_ratio - self.initial_ga_ratio
         while len(samples) < self.n_samples:
             # Ensure we don't overshoot the total number of samples
-            leftover_samples = min(
-                self.samples_per_iteration, self.n_samples - len(samples)
-            )
+            leftover_samples = min(self.samples_per_iteration, self.n_samples - len(samples))
 
             # We want to start with a high ratio of HVS picked points, and gradually decrease it
             # in favor of the GA optimized points
             # However, we don't want the number of GA points to be 0 at the start, start with 20%
-            curr_ratio = self.initial_ga_ratio + final_ratio_delta * (
-                len(samples) / self.n_samples
-            )
+            curr_ratio = self.initial_ga_ratio + final_ratio_delta * (len(samples) / self.n_samples)
 
             n_ga_points = int(np.round(curr_ratio * leftover_samples))
 
@@ -230,7 +219,11 @@ class GAAdaptiveSampler:
                 delta = leftover_samples
             else:
                 delta = max(0, leftover_samples - len(new_points))
-            hvs_samples = self._pick_hvs_samples(delta, samples)
+            # hvs_samples = self._pick_hvs_samples(delta, samples)
+
+            sampler = RandomSampler(self.config.parameters_type, self.features)
+            random_samples = sampler.sample(delta)
+            random_samples = pd.concat([samples, self._sample_kernel(random_samples)])
 
             # Concat GA points with HVS picked samples
             # Note that the HVS sampler already concatenates the new points with the old ones,
@@ -240,10 +233,11 @@ class GAAdaptiveSampler:
 
             samples = pd.concat(
                 [
-                    hvs_samples,
+                    random_samples,
                     ga_points,
                 ]
             )
+            samples.reset_index(drop=True, inplace=True)
 
             # FIXME: dirty quick-restart
             samples.to_csv(self.output_path, index=False)
@@ -279,9 +273,7 @@ class GAAdaptiveSampler:
         :rtype: pandas.DataFrame
         """
 
-        sampler = RandomSampler(
-            self.config.parameters_type, self.features, self.input_features
-        )
+        sampler = RandomSampler(self.config.parameters_type, self.features, self.input_features)
         return sampler.sample(n_points)
 
     def _pick_hvs_samples(self, n_samples: int, data: pd.DataFrame) -> pd.DataFrame:
@@ -321,6 +313,11 @@ class GAAdaptiveSampler:
         # First, pick new optimization points
         optimization_points = self._pick_random_optimization_points(n_samples)
 
+        # print head of samples and dtype
+        # print(samples.head())
+        # print(samples.dtypes)
+        # print(self.config.parameters_type.keys())
+        # print(self.config.parameters_type.values())
         # Fit models to the currently sampled points
         models = self._fit_models(samples)
 
@@ -328,17 +325,13 @@ class GAAdaptiveSampler:
         problem = DesignParametersProblem(self.config, models)
         algorithm = NSGA2(
             sampling=MixedVariableSampling(),
-            mating=MixedVariableMating(
-                eliminate_duplicates=MixedVariableDuplicateElimination()
-            ),
+            mating=MixedVariableMating(eliminate_duplicates=MixedVariableDuplicateElimination()),
             eliminate_duplicates=MixedVariableDuplicateElimination(),
         )
 
         if self.do_early_stopping:
             termination = self._build_early_stopping_criterion(self.models)
-            termination = TerminationCollection(
-                termination, get_termination("time", "0:0:10")
-            )
+            termination = TerminationCollection(termination, get_termination("time", "0:0:10"))
         else:
             termination = get_termination("time", "0:0:10")
 
@@ -350,9 +343,7 @@ class GAAdaptiveSampler:
             desc="Running Genetic Algorithm",
             leave=None,
         ):
-            local_optimum, _ = self._run_ga_on_point(
-                point, algorithm, problem, termination=termination
-            )
+            local_optimum, _ = self._run_ga_on_point(point, algorithm, problem, termination=termination)
 
             # Append the local solution to the list of points to be sampled
             sampling_list.append(local_optimum)
@@ -392,16 +383,13 @@ class GAAdaptiveSampler:
                 np.column_stack([pred, predictions])
 
         # Take the nearest power of 10 below the minimum prediction in absolute value
-        thresh = 10 ** (np.floor(np.log10(np.min(abs(predictions)))) - 1)
+        epsilon = 1e-10  # Small value to avoid log10(0)
+        thresh = 10 ** (np.floor(np.log10(np.min(abs(predictions)) + epsilon)) - 1)
 
         end = time.time()
 
-        logging.info(
-            f"Early stopping enabled, threshold inferred to be {thresh} (Overhead: {np.round(end - begin, 3)}s)"
-        )
-        return RobustTermination(
-            MultiObjectiveSpaceTermination(tol=thresh, n_skip=5), period=20
-        )
+        logging.info(f"Early stopping enabled, threshold inferred to be {thresh} (Overhead: {np.round(end - begin, 3)}s)")
+        return RobustTermination(MultiObjectiveSpaceTermination(tol=thresh, n_skip=5), period=20)
 
     def _run_ga_on_point(self, point, algorithm, problem, termination):
         """
@@ -434,11 +422,10 @@ class GAAdaptiveSampler:
     def _build_model(self, obj, samples):
 
         if self.use_optuna:
-            tuner = OptunaTunerLightgbm(
-                samples.drop(self.config.objectives, axis=1), samples[obj]
-            )
+            tuner = OptunaTunerLightgbm(samples.drop(self.config.objectives, axis=1), samples[obj])
             model, _ = tuner.run(time_budget=2 * 60, n_trials=128)
         else:
+            print("Building oracle model for ga-adaptive step")
             factory = SurrogateFactory(self.config, samples)
             model = factory.build(obj)
         return model
@@ -460,8 +447,11 @@ class GAAdaptiveSampler:
             if first_iter or (self.iteration % 4) == 0:
                 self.models[obj] = self._build_model(obj, samples)
             else:
-                self.models[obj].fit(
-                    samples.drop(self.config.objectives, axis=1), samples[obj]
+                new_X, new_y = (
+                    samples.drop(self.config.objectives, axis=1),
+                    samples[obj],
                 )
+                new_X = encode_dataframe(self.config.parameters_type, new_X)
+                self.models[obj].fit(new_X, new_y)
 
         return self.models

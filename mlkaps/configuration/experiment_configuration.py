@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import os
@@ -26,9 +26,7 @@ class ExperimentConfig:
     """
 
     @staticmethod
-    def from_dict(
-        config_dict: dict, working_directory: str = None, output_directory: str = None
-    ):
+    def from_dict(config_dict: dict, working_directory: str = None, output_directory: str = None):
         """
         Build a ExperimentConfig object from a dictionary containing the configuration of the
         experiment
@@ -70,12 +68,12 @@ class ExperimentConfig:
         parser.parse_experiment_parameters(self, config_dict)
 
         # Optionally parse the optimization flags
-        self.compilation_configuration = CompilationConfiguration.make_if_enabled(
-            self, config_dict
-        )
+        self.compilation_configuration = CompilationConfiguration.make_if_enabled(self, config_dict)
 
         parser.parse_objectives(self, config_dict)
-        self.objectives = self["experiment"]["objectives"]
+        self.objectives = self["experiment"]["objectives_list"]
+        self.objectives_directions = self["experiment"]["objectives_directions"]
+        self.objectives_bounds = self["experiment"]["objectives_bounds"]
 
         parser.parse_modeling(self, config_dict)
         parser.parse_clustering(self, config_dict)
@@ -92,9 +90,7 @@ class ExperimentConfig:
         output_directory: pathlib.Path,
     ):
         if not working_directory.exists():
-            raise parser.ParserError(
-                f"The working directory '{working_directory}' does not exists, exiting"
-            )
+            raise parser.ParserError(f"The working directory '{working_directory}' does not exists, exiting")
 
         self.working_directory = working_directory
 
@@ -102,9 +98,7 @@ class ExperimentConfig:
             output_directory = pathlib.Path(output_directory)
         else:
             output_directory = pathlib.Path(
-                config_dict["EXPERIMENT"].get(
-                    "output_directory", working_directory / "mlkaps_output/"
-                )
+                config_dict["EXPERIMENT"].get("output_directory", working_directory / "mlkaps_output/")
             )
 
         self.output_directory = output_directory.absolute()
@@ -164,9 +158,7 @@ class ExperimentConfig:
                 )
             keys["optimization_features"].append(p_name)
 
-    @deprecated(
-        "This getter is deprecated and will be removed in future versions, use obj.objectives instead"
-    )
+    @deprecated("This getter is deprecated and will be removed in future versions, use obj.objectives instead")
     def get_objectives(self):
         """
         Return the list of objectives to optimize
@@ -175,18 +167,14 @@ class ExperimentConfig:
             raise Exception("No objectives set")
         return self["experiment"]["objectives"]
 
-    @deprecated(
-        "This getter is deprecated and will be removed in future versions, use obj.design_parameters instead"
-    )
+    @deprecated("This getter is deprecated and will be removed in future versions, use obj.design_parameters instead")
     def get_design_features(self):
         """
         Return a list of design features (Features that will be optimized)
         """
         return self["parameters"]["optimization_features"]
 
-    @deprecated(
-        "This getter is deprecated and will be removed in future versions, use obj.parameters_type instead"
-    )
+    @deprecated("This getter is deprecated and will be removed in future versions, use obj.parameters_type instead")
     def get_all_features_types(self):
         """
         Return a dict containing the type of every feature defined in the experiment,
@@ -194,18 +182,14 @@ class ExperimentConfig:
         """
         return self["parameters"]["features_type"]
 
-    @deprecated(
-        "This getter is deprecated and will be removed in future versions, use obj.input_parameters instead"
-    )
+    @deprecated("This getter is deprecated and will be removed in future versions, use obj.input_parameters instead")
     def get_kernel_input_features(self):
         """
         Returns a list of the features that will be used as input to the kernel
         """
         return self["parameters"]["inputs"]
 
-    @deprecated(
-        "This getter is deprecated and will be removed in future versions, use obj.compilation_configuration instead"
-    )
+    @deprecated("This getter is deprecated and will be removed in future versions, use obj.compilation_configuration instead")
     def get_compilation_configuration(self):
         """
         Returns the compilation configuration of the experiment

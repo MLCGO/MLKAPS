@@ -1,8 +1,8 @@
 """
-    Copyright (C) 2020-2024 Intel Corporation
-    Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
-    Copyright (C) 2024-  MLKAPS contributors
-    SPDX-License-Identifier: BSD-3-Clause
+Copyright (C) 2020-2024 Intel Corporation
+Copyright (C) 2022-2024 University of Versailles Saint-Quentin-en-Yvelines
+Copyright (C) 2024-  MLKAPS contributors
+SPDX-License-Identifier: BSD-3-Clause
 """
 
 import os.path
@@ -80,7 +80,4 @@ def assert_file_is_executable(path):
         If the file doesn't exist or is not executable
     """
     if not check_file_is_executable(path):
-        raise Exception(
-            "Expected executable file, file either doesn't exist, or is not executable:"
-            "{}".format(path)
-        )
+        raise Exception("Expected executable file, file either doesn't exist, or is not executable:" "{}".format(path))
