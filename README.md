@@ -3,6 +3,7 @@
 ![GitHub Release](https://img.shields.io/github/v/release/MLCGO/MLKAPS)
 ![Build Status](https://github.com/MLCGO/MLKAPS/actions/workflows/python-app.yaml/badge.svg?branch=main)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15124953.svg)](https://doi.org/10.5281/zenodo.15124953)
 
 MLKAPS (Machine Learning for Kernel Accuracy and Performance Studies) is a black-box machine learning auto-tuning tool predicting best design parameters of a computational kernel for any given input configuration.
 
