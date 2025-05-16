@@ -7,7 +7,6 @@ SPDX-License-Identifier: BSD-3-Clause
 Grid sampling using a samples count per dimensions
 """
 
-import numpy as np
 import pandas as pd
 
 from .static_sampler import StaticSampler
@@ -21,12 +20,6 @@ class GridSampler(StaticSampler):
     def __init__(self, variable_types=None, variable_values=None, variable_mask=None):
         super().__init__(variable_types, variable_values, variable_mask)
 
-    @staticmethod
-    def _sample_linear_space(n_samples, variable_values, variable_type):
-        dtype = "int" if variable_type == "int" else "float"
-
-        return list(np.linspace(variable_values[0], variable_values[1], n_samples, dtype=dtype))
-
     def sample(self, n_samples: dict) -> pd.DataFrame:
         """
         Sample in a grid fashion.
@@ -39,12 +32,7 @@ class GridSampler(StaticSampler):
         """
 
         def generate_grid_samples(variable_values, variable_type, n_samples):
-            if variable_type in ["Categorical", "Boolean"]:
-                return variable_values
-            elif variable_type in ["int", "float"]:
-                return self._sample_linear_space(n_samples, variable_values, variable_type)
-            else:
-                raise ValueError(f"Unknown variable type: {variable_type}")
+            return variable_values.sample_linear_space(n_samples, variable_type)
 
         variables = list(self.variables_types.keys())
         grids = [

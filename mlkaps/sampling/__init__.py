@@ -9,7 +9,7 @@ This module contains various sampling algorithms and utilities.
 
 from .generic_bounded_sampler import LhsSampler, RandomSampler
 from .grid_sampler import GridSampler
-from .sampler import SamplerError
+from .sampler import SamplerError, ValueSet, ValueSequence, ValueRange
 from .variable_mapping import map_float_to_variables, map_variables_to_numeric
 
 __all__ = [
@@ -19,4 +19,7 @@ __all__ = [
     "SamplerError",
     "map_variables_to_numeric",
     "map_float_to_variables",
+    "ValueSet",
+    "ValueSequence",
+    "ValueRange",
 ]

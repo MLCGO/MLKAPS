@@ -93,23 +93,8 @@ def map_float_to_variables(data: pd.DataFrame, variables_types: dict, variables_
 
     # Copy the data to avoid side-effects
     data = data.copy()
-    for variable, var_type in variables_types.items():
-        if var_type in ["Categorical", "Boolean"]:
-            # Round and use the correct type
-            # Note that rounding is important, otherwise values might be mapped to the wrong
-            # category
-            data[variable] = np.round(data[variable]).astype(int)
-
-            # We map the integer values to the corresponding
-            # Categorical/Boolean using a map
-            feature_map = {j: k for j, k in enumerate(variables_values[variable])}
-
-            # Then converts all those integers to their corresponding
-            # values
-            data[variable] = data[variable].map(feature_map)
-
-        elif var_type == "int":
-            # Round and use the correct type
-            data[variable] = np.round(data[variable]).astype(int)
+    for variable, values in variables_values.items():
+        if not values.is_continuous():
+            data[variable] = values.get_samples(data[variable])
 
     return data

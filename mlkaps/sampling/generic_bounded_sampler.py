@@ -16,15 +16,12 @@ from .static_sampler import StaticSampler
 from .variable_mapping import map_float_to_variables
 
 
-def convert_variables_bounds_to_numeric(variables_types, variables_values, include_high_bound=False):
+def convert_variables_bounds_to_numeric(variables_types, variables_values):
     """
     Convert a dictionary of variables bounds to a dictionary of numeric bounds:
-    Categorical variables are converted to [0, n_categories - 1] if include_high_bound is False,
-    or [0, n_categories] if include_high_bound is True.
-
-    For integer and float variables, the bounds are set to [min, max] where min and max are the
-    lowest and highest possible values for the variable.
-
+    - Non-continuous variables are converted to [0, n_values-1]
+    - For continuous (float) variables, the bounds are set to [min, max] where min and max are the
+      lowest and highest possible values for the variable.
 
     :param variables_types: A dictionary associating the name of each variable to its type. The type can be either
         "Categorical", "Boolean", "int" or "float".
@@ -33,9 +30,6 @@ def convert_variables_bounds_to_numeric(variables_types, variables_values, inclu
         values must be a list of values for categorical variables, or a tuple (min, max) for
         numerical variables.
     :type variables_values: dict
-    :param include_high_bound: Whether the upper bounds for categorical variables should be inclusive or not.
-        i.e, if True, the upper bound is set to n_categories, else it is set to n_categories - 1.
-    :type include_high_bound: bool
 
     :return: A dictionary associating the name of each variable to its bounds.
     :rtype: dict
@@ -43,15 +37,8 @@ def convert_variables_bounds_to_numeric(variables_types, variables_values, inclu
 
     # Generate a list of bounds for each parameter
     bounds = {}
-    for variable, var_type in variables_types.items():
-        # For boolean/Categorical, just take the number of possible values
-        if var_type in ["Categorical", "Boolean"]:
-            if not include_high_bound:
-                bounds[variable] = [0, len(variables_values[variable]) - 1]
-            else:
-                bounds[variable] = [0, len(variables_values[variable])]
-        else:
-            bounds[variable] = variables_values[variable]
+    for variable, values in variables_values.items():
+        bounds[variable] = [values.get_lower_sampling_bound(), values.get_upper_sampling_bound()]
     return bounds
 
 
