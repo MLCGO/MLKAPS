@@ -31,12 +31,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class QuantileLGBMMixture:
     """
     Mixtures of LGBMRegressor for scalable mean and variance regression.
     """
 
-    def __init__(self, params: dict = None, hb_alpha: float = 0.05, method="stabard", mean_only=False):
+    def __init__(self, params: dict = None, hb_alpha: float = 0.95, method="standard"):
 
         if params is not None:
             try:
@@ -46,6 +47,7 @@ class QuantileLGBMMixture:
                 msg += pprint.pformat(params)
                 raise ValueError(msg) from e
         else:
+            # Default parameters for the LGBMRegressor
             params = {
                 "n_estimators": 800,
                 "n_jobs": -1,
@@ -56,13 +58,13 @@ class QuantileLGBMMixture:
                 "num_leaves": 80,
                 "verbose": -1,
             }
-        
+
         assert params["objective"] == "quantile", "The objective must be quantile for the LGBMRegressor"
         self.params = params
 
         assert 0 < hb_alpha < 1, "The alpha must be between 0 and 1"
-        assert method in ["forced_symmetry", "standard"], "The method must be either forced_symmetry or standard"
-
+        assert method in ["old_variance", "standard"], "The method must be either old_variance or standard"
+        self.method = method
         self.lbm = None
         self.hbm = None
         self.pred = None
@@ -71,25 +73,26 @@ class QuantileLGBMMixture:
         self.ordering = None
         self.mean_only = False
 
-    def train(self, X: pd.DataFrame, y, refit=False):
+    def fit(self, X: pd.DataFrame, y: pd.Series):
         ordering = sorted(X.columns)
-        X = X[ordering]
         self.ordering = ordering
+        X = X[ordering]
 
-        if self.method == "standard":
-            params_lb = self.parameters.copy()
+        # When in old_variance mode, we need a third model to compute the lower bound
+        if self.method == "old_variance":
+            params_lb = self.params.copy()
             params_lb["alpha"] = self.lb_alpha
 
             self.lbm = LGBMRegressor(**params_lb)
             self.lbm.fit(X, y)
 
-        params_hb = self.parameters.copy()
+        params_hb = self.params.copy()
         params_hb["alpha"] = self.hb_alpha
 
         self.hbm = LGBMRegressor(**params_hb)
         self.hbm.fit(X, y)
 
-        params_pred = self.parameters.copy()
+        params_pred = self.params.copy()
         params_pred["objective"] = "mae"
         self.pred = LGBMRegressor(**params_pred)
         self.pred.fit(X, y)
@@ -102,7 +105,7 @@ class QuantileLGBMMixture:
         pred_hb = pred + delta
 
         return pred_lb, pred_hb
-    
+
     def _old_variance(self, X: pd.DataFrame, pred):
         pred_hb = self.hbm.predict(X)
         pred_lb = self.lbm.predict(X)
@@ -111,7 +114,7 @@ class QuantileLGBMMixture:
         pred_hb = np.maximum(pred_hb, pred)
 
         return pred_lb, pred_hb
-    
+
     def predict(self, X: pd.DataFrame):
         X = X[self.ordering]
 
