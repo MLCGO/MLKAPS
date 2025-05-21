@@ -38,7 +38,7 @@ def convert_variables_bounds_to_numeric(variables_types, variables_values):
     # Generate a list of bounds for each parameter
     bounds = {}
     for variable, values in variables_values.items():
-        bounds[variable] = [values.get_lower_sampling_bound(), values.get_upper_sampling_bound()]
+        bounds[variable] = values.get_sampling_bounds()
     return bounds
 
 
@@ -147,6 +147,7 @@ class GenericBoundedSampler(StaticSampler):
             # Create a new dataframe to ensure ordering
             ordered_random_samples = pd.DataFrame(random_samples, columns=ordered_key)
         except Exception as exc:
+            print(f"Sampler failed with exception: {exc}")
             raise SamplerError from exc
 
         return ordered_random_samples

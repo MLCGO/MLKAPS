@@ -15,6 +15,12 @@ class ValueContainer:
     """Base class for value containers.
     Value containers are used, for example, to store parameters and by samplers."""
 
+    def split(self, threshold):
+        """Split the container into two containers.
+        The first container contains all values less than or equal to the threshold.
+        The second container contains all values greater than the threshold."""
+        raise NotImplementedError("This method should be overridden by subclasses")
+
     def sample_linear_space(self, n_samples=-1, type="float"):
         """Return a list of n_samples many values from the container.
         If n_samples is greater than the number of values in the container, return all values in the container."""
@@ -25,13 +31,12 @@ class ValueContainer:
         Sets and Sequences for example are not continuous while a range is."""
         raise NotImplementedError("This method should be overridden by subclasses")
 
-    def get_lower_sampling_bound(self):
-        """Return the lower bound of the container."""
+    def get_size(self):
+        """Return the size of the container."""
         raise NotImplementedError("This method should be overridden by subclasses")
 
-    def get_upper_sampling_bound(self):
-        """Return the upper bound of the container and an indication of the bound is inclusive or not.
-        The return value is a tuple (upper_bound, is_inclusive)."""
+    def get_sampling_bounds(self):
+        """Return the lower and upper bound of the container."""
         raise NotImplementedError("This method should be overridden by subclasses")
 
     def get_samples(self, indices, type="float"):
@@ -61,17 +66,28 @@ class ValueSet(ValueContainer):
     """Container for a set of values.
     The values in the set are not checked for anything. They are assumed to be valid and of the same type."""
 
+    def split(self, threshold):
+        """Split the sequence into two sequences.
+        The first sequence contains the first threshold many elements.
+        The second sequence contains all values starting with index >= threshold."""
+        assert threshold >= 0 and threshold <= len(self.values), "Threshold must be in the index range of the set"
+        return ValueSet(self.values[:threshold]), ValueSet(self.values[threshold:])
+
     def __init__(self, values):
         self.values = sorted(values)
 
     def is_continuous(self):
         return False
 
-    def get_lower_sampling_bound(self):
-        return 0
+    def get_size(self):
+        """ "Return the size of the set.
+        The size is defined by the number of elements in the set."""
+        return len(self.values)
 
-    def get_upper_sampling_bound(self):
-        return len(self.values) - 1
+    def get_sampling_bound(self):
+        """Return the lower and upper bounds of the set.
+        The bounds of sets are defined by their index space."""
+        return [0, len(self.values) - 1]
 
     def sample_linear_space(self, n_samples=-1, type="float"):
         """Return a list of n_samples many values from the set.
@@ -97,17 +113,39 @@ class ValueSequence(ValueContainer):
         self.mode = mode
         assert mode != "geometric" or progression > 1, "Geometric progression must be greater than 1"
 
+    def split(self, threshold):
+        """Split the sequence into two sequences.
+        The first sequence contains the first threshold many elements.
+        The second sequence contains all values starting with index >= threshold."""
+        assert (
+            threshold >= self.get_sampling_bounds()[0] and threshold <= self.get_sampling_bounds()[1] + 1
+        ), "Threshold must be in the index range of the sequence"
+        if self.mode == "arithmetic":
+            return (
+                ValueSequence(self.start, self.start + self.progression * threshold, self.progression),
+                ValueSequence(self.start + self.progression * threshold, self.stop, self.progression),
+            )
+        assert self.mode == "geometric"
+        return (
+            ValueSequence(self.start, self.start * (self.progression**threshold), self.progression),
+            ValueSequence(self.start * (self.progression**threshold), self.stop, self.progression),
+        )
+
     def is_continuous(self):
         return False
 
-    def get_lower_sampling_bound(self):
-        return 0
-
-    def get_upper_sampling_bound(self):
+    def get_size(self):
+        """Return the size of the sequence.
+        The size is defined by the number of elements in the sequence."""
         if self.mode == "arithmetic":
-            return (self.stop - self.start + self.progression - 1) // self.progression - 1
+            return (self.stop - self.start + self.progression - 1) // self.progression
         assert self.mode == "geometric"
-        return int(math.log(self.stop - self.start + self.progression - 1, self.progression)) - 1
+        return int(math.log(self.stop - self.start + self.progression - 1, self.progression))
+
+    def get_sampling_bounds(self):
+        """Return the lower and upper bounds of the sequence.
+        The bounds of sequences are defined by their index space."""
+        return [0, self.get_size() - 1]
 
     def sample_linear_space(self, n_samples=-1, type="float"):
         """Return a list of n_samples many values from the sequence.
@@ -142,19 +180,33 @@ class ValueRange(ValueContainer):
     The range is always defined by floats."""
 
     def __init__(self, start, stop, include_high_bound=True):
+        assert start <= stop, "Start must be <= stop"
         self.start = start
         self.stop = stop
         self.include_high_bound = include_high_bound
 
+    def split(self, threshold):
+        """Split the range into two ranges.
+        The first range contains all values less than or equal to the threshold.
+        The second range contains all values greater than the threshold."""
+        # is it ok that this will have threshold in both ranges?
+        assert threshold >= self.start and threshold <= self.stop, "threshold must be within the range"
+        return (
+            ValueRange(self.start, threshold, self.include_high_bound),
+            ValueRange(threshold, self.stop, self.include_high_bound),
+        )
+
     def is_continuous(self):
         return True
 
-    def get_lower_sampling_bound(self):
-        return self.start
+    def get_size(self):
+        """Return the size of the range.
+        The sizes is defined by the distance between the start and stop values."""
+        return self.stop - self.start
 
-    def get_upper_sampling_bound(self):
+    def get_sampling_bounds(self):
         assert self.include_high_bound, "Upper bound must be inclusive"
-        return self.stop
+        return [self.start, self.stop]
 
     def sample_linear_space(self, n_samples, type="float"):
         """Return a list of n_samples many values from the range.

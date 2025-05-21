@@ -8,13 +8,14 @@ SPDX-License-Identifier: BSD-3-Clause
 import numpy as np
 import pandas as pd
 
+from mlkaps.sampling import ValueRange
 from mlkaps.sampling.adaptive import HVSampler
 
 
 class TestHVSampler:
 
     def test_can_run_1d(self):
-        features = {"a": [0, 5]}
+        features = {"a": ValueRange(0, 5)}
 
         def f(df):
             return pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
@@ -25,7 +26,7 @@ class TestHVSampler:
         assert data.shape == (300, 2)
 
     def test_can_run_2d(self):
-        features = {"a": [0, 5], "b": [0, 5]}
+        features = {"a": ValueRange(0, 5), "b": ValueRange(0, 5)}
 
         def f(df):
             return pd.concat([df, df.apply(lambda x: x.iloc[0] + x.iloc[1], axis=1)], axis=1)
@@ -39,7 +40,7 @@ class TestHVSampler:
         # Check that we return the correct number of samples, even when we use bootstrap
         # (We may return more samples than requested, for examples if the bootstrap samples >
         # n_samples)
-        features = {"a": [0, 5]}
+        features = {"a": ValueRange(0, 5)}
 
         def f(df):
             return pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
@@ -50,7 +51,7 @@ class TestHVSampler:
         assert data.shape == (1, 2)
 
     def test_correctly_appends_to_data(self):
-        features = {"a": [0, 100]}
+        features = {"a": ValueRange(0, 100)}
 
         # Return 0 if x < 50, else return x
         def f(df):
@@ -70,7 +71,7 @@ class TestHVSampler:
             assert data.shape == (10 * (i + 1), 2)
 
     def test_correctly_samples_high_variance_space(self):
-        features = {"a": [0, 100]}
+        features = {"a": ValueRange(0, 100)}
 
         # Return 0 if x < 50, else return x
         def f(df):

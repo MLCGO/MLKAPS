@@ -74,3 +74,49 @@ class TestValueContainers:
         assert np.array_equal(value_range.sample_linear_space(5), [0, 5, 10, 15, 20])
         value_range = ValueRange(0, 20, False)
         assert np.array_equal(value_range.sample_linear_space(5), [0, 4, 8, 12, 16])
+
+    def test_split_set(self):
+        values = [1, 2, 3, 4, 5]
+        value_set = ValueSet(values)
+        splits = value_set.split(2)
+        assert np.array_equal(splits[0].sample_linear_space(), [1, 2])
+        assert np.array_equal(splits[1].sample_linear_space(), [3, 4, 5])
+        splits = value_set.split(5)
+        assert np.array_equal(splits[0].sample_linear_space(), [1, 2, 3, 4, 5])
+        assert np.array_equal(splits[1].sample_linear_space(), [])
+        splits = value_set.split(0)
+        assert np.array_equal(splits[1].sample_linear_space(), [1, 2, 3, 4, 5])
+        assert np.array_equal(splits[0].sample_linear_space(), [])
+
+    def test_split_sequence(self):
+        value_seq = ValueSequence(1, 6, 1, "arithmetic")
+        splits = value_seq.split(2)
+        assert np.array_equal(splits[0].sample_linear_space(), [1, 2])
+        assert np.array_equal(splits[1].sample_linear_space(), [3, 4, 5])
+        splits = value_seq.split(5)
+        assert np.array_equal(splits[0].sample_linear_space(), [1, 2, 3, 4, 5])
+        assert np.array_equal(splits[1].sample_linear_space(), [])
+        splits = value_seq.split(0)
+        assert np.array_equal(splits[1].sample_linear_space(), [1, 2, 3, 4, 5])
+        assert np.array_equal(splits[0].sample_linear_space(), [])
+
+    def test_split_range(self):
+        value_range = ValueRange(1, 5)
+        splits = value_range.split(2)
+        assert np.array_equal(splits[0].sample_linear_space(2), [1, 2])
+        assert np.array_equal(splits[1].sample_linear_space(3), [2.0, 3.5, 5.0])
+
+    def test_get_size_set(self):
+        values = [1, 2, 3, 4, 5]
+        value_set = ValueSet(values)
+        assert value_set.get_size() == 5
+
+    def test_get_size_sequence(self):
+        value_sequence = ValueSequence(1, 20, 3, "arithmetic")
+        assert value_sequence.get_size() == 7
+        value_sequence = ValueSequence(2.0, 200.0, 3.0, "geometric")
+        assert value_sequence.get_size() == 4
+
+    def test_get_size_range(self):
+        value_range = ValueRange(1, 20)
+        assert value_range.get_size() == 19.0
