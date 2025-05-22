@@ -32,8 +32,6 @@ class SamplerError(Exception):
     Generic exception to raise when a sampler fails
     """
 
-    pass
-
 
 class Sampler:
     """

@@ -2,11 +2,11 @@
   "verbose": true,
   "debug": false,
   "EXPERIMENT": {
-      "objectives": [
-        "accuracy",
-        "performance"
-      ]
-    },
+    "objectives": [
+      "accuracy",
+      "performance"
+    ]
+  },
   "PARAMETERS": {
     "COMPILATION": {
       "static_flags": [

@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
+import matplotlib
 import numpy as np
 import pandas as pd
 import psutil
-from mlkaps.sample_collection import (
-    MonoSubprocessHarness,
-    MonoKernelExecutor,
-    FailedRunResolver,
-)
-import matplotlib
+
+from mlkaps.sample_collection import FailedRunResolver, MonoKernelExecutor, MonoSubprocessHarness
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from pathlib import Path  # noqa: E402
 import sys  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+import matplotlib.pyplot as plt  # noqa: E402
 
 # Juste redefine the variables used in the experiment
 ncores = len(psutil.Process().cpu_affinity())
@@ -141,9 +139,7 @@ def main():
         # We want one lineplot per vector size
         fig, axs = plt.subplots(4, 4, figsize=(16, 16), layout="constrained")
         colormap = matplotlib.colormaps.get_cmap("tab10")  # Get the colormap
-        colors = [
-            colormap(i) for i in range(len(runs["run"].unique()))
-        ]  # Generate colors
+        colors = [colormap(i) for i in range(len(runs["run"].unique()))]  # Generate colors
         for ax, size in zip(axs.flatten(), np.unique(samples["vecsize"])):
             subset = samples[samples["vecsize"] == size]
             ax.plot(subset["nthreads"], subset["performance"], marker="o")

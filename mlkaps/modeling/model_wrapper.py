@@ -5,8 +5,9 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-import pandas as pd
 from typing import Iterable
+
+import pandas as pd
 
 
 # This file provides functions to encode data and train a model on it.

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import psutil
 import sys
+
+import psutil
 
 if len(sys.argv) != 3:
     print("Usage: python3 templatize.py <input_file> <output_file>")

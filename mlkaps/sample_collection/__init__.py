@@ -5,10 +5,10 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-from .function_harness import FunctionPath, MonoFunctionHarness
-from .subprocess_harness import MonoSubprocessHarness
-from .mono_kernel_executor import MonoKernelExecutor
 from .failed_run_resolver import FailedRunResolver
+from .function_harness import FunctionPath, MonoFunctionHarness
+from .mono_kernel_executor import MonoKernelExecutor
+from .subprocess_harness import MonoSubprocessHarness
 
 __all__ = [
     "FunctionPath",

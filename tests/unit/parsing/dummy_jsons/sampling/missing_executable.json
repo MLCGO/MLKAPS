@@ -47,8 +47,7 @@
   "SAMPLING": {
     "sampling_verbose": true,
     "sampling_debug": false,
-    "scripts": {
-    },
+    "scripts": {},
     "objectives": [
       "accuracy",
       "performance"

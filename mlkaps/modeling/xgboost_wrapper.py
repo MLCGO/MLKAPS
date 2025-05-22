@@ -12,7 +12,9 @@ Ensures that the features are passed in the correct order and are correctly type
 
 import pandas as pd
 import xgboost
+
 from mlkaps.modeling.model_wrapper import ModelWrapper
+
 
 class XGBoostModelWrapper(ModelWrapper, wrapper_name="xgboost"):
     """

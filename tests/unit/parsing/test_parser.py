@@ -5,10 +5,11 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-import os
-import unittest
 import json
+import os
 import pathlib
+import unittest
+
 from mlkaps.configuration import ExperimentConfig
 
 

@@ -35,6 +35,12 @@ requires = ["flit_core >=3.7,<4"]
 
 [tool.pytest.ini_options]
 addopts = "-v --doctest-modules --import-mode=importlib"
+filterwarnings = [
+    "ignore:.*U.*mode is deprecated:DeprecationWarning",
+    "ignore:.*are not used.*:UserWarning",
+    "ignore:.*deprecated.*:DeprecationWarning",
+    "ignore:.*verbose.*:UserWarning"
+]
 testpaths = ["tests", "mlkaps"]
 
 [tool.black]

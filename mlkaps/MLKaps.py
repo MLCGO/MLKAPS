@@ -7,23 +7,25 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 
 import json
-import pathlib
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from tqdm.contrib.logging import logging_redirect_tqdm
-import pandas as pd
 import logging
 import time
+
+
 from mlkaps.clustering import generate_clustering_models
-from mlkaps.codegen.codegen import decision_trees_to_c
+from mlkaps.codegen.codegen import write_decision_trees
 from mlkaps.configuration import ExperimentConfig
 from mlkaps.modeling.modeling import build_main_surrogates
 from mlkaps.optimization.genetic_optimizer import (
     GeneticOptimizer,
     GeneticOptimizerConfig,
 )
+from mlkaps.optimization.optimizer_checkpoint import OptimizerCheckpoint
 from mlkaps.sample_collection.kernel_sampling import sample_kernel
+from mlkaps.sample_collection.samples_checkpoint import SamplesCheckpoint
 from ._utils import setup_logging, add_file_logger, ensure_not_root
 import os
 
@@ -52,7 +54,7 @@ def run_clustering(args, experiment_config, optim_results):
     # plot_all_decision_tree(experiment_config, clustered_models)
 
     # Experimental
-    decision_trees_to_c(experiment_config, clustered_models)
+    write_decision_trees(experiment_config, clustered_models)
 
 
 def run_optimization(args, config_dict, experiment_config, surrogate_models):
@@ -76,6 +78,7 @@ def run_optimization(args, config_dict, experiment_config, surrogate_models):
     :rtype: pandas.DataFrame
     """
 
+    optimizer_checkpoint = OptimizerCheckpoint(experiment_config.output_directory)
     qr = args.quick_restart
     has_quick_restart = qr in ["clustering"]
 
@@ -83,13 +86,9 @@ def run_optimization(args, config_dict, experiment_config, surrogate_models):
 
     optim_results = {}
     if has_quick_restart:
-        logging.info("Quick-restart: Loading the optimization results from previous run")
-        path = pathlib.Path(experiment_config.output_directory / "optim.csv")
-        if not path.exists():
-            raise FileNotFoundError(path)
-        optim_results = pd.read_csv(path)
+        optim_results = optimizer_checkpoint.restart()
     else:
-        gen_optim = GeneticOptimizer(genetic_config, surrogate_models)
+        gen_optim = GeneticOptimizer(genetic_config, surrogate_models, optimizer_checkpoint)
         optim_results = gen_optim.run()
 
     return optim_results
@@ -116,7 +115,7 @@ def create_surrogate_models(args, kernel_sampling_output, experiment_config):
     return surrogate_models
 
 
-def run_kernel_sampling(args, experiment_config, config_dict):
+def run_kernel_sampling(args, experiment_config: ExperimentConfig, config_dict: dict):
     """
     Runs the sampling module according to the provided experiment configuration
 
@@ -131,20 +130,17 @@ def run_kernel_sampling(args, experiment_config, config_dict):
     :return: The sampled points and their measured objectives values
     :rtype: pandas.DataFrame
     """
-
+    samples_checkpoint = SamplesCheckpoint(
+        experiment_config.output_directory, experiment_config.parameters_type, experiment_config.objectives
+    )
     qr = args.quick_restart
 
     has_quick_restart = qr in ["modeling", "optimization", "clustering"]
 
     if has_quick_restart:
-        logging.info("Quick-restart: Loading the samples from previous run")
-        path = (experiment_config.output_directory / "kernel_sampling/samples.csv").resolve()
-        if not path.exists():
-            raise FileNotFoundError(path)
-        df = pd.read_csv(path)
+        df = samples_checkpoint.restart()
     else:
-        df = sample_kernel(experiment_config, config_dict)
-
+        df = sample_kernel(experiment_config, config_dict, samples_checkpoint)
     return df
 
 

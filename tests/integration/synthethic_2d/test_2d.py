@@ -7,8 +7,9 @@ SPDX-License-Identifier: BSD-3-Clause
 
 import os
 
-from mlkaps.MLKaps import run_from_config
 import pytest
+
+from mlkaps.MLKaps import run_from_config
 
 
 class Test2D:
@@ -16,7 +17,6 @@ class Test2D:
     def _run_helper(self, tmp_path, builder_helper, config_name):
         curr_path = os.path.abspath(os.path.dirname(__file__))
         builder_helper.setup(srcpath=curr_path, build=False)
-
         json, _ = builder_helper.load_configuration(config_name, tmp_path)
         run_from_config([], json, builder_helper.srcpath, tmp_path)
 

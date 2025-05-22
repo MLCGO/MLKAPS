@@ -5,8 +5,9 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-import pandas as pd
 from typing import Callable
+
+import pandas as pd
 
 
 class FailedRunResolver:

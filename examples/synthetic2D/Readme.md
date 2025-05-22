@@ -1,5 +1,11 @@
 # Synthetic 2D Example
 
+## Prerequisites
+
+Before running this example, ensure you have `mlkaps` installed. Follow the installation guidelines provided in the main [README](../../README.md).
+
+## Running the Test
+
 This minimal examples shows how to run MLKAPS, and how to plug-in a python kernel.
 
 Content:
@@ -29,6 +35,7 @@ To run the test, simply execute the following command:
 
 ```sh
 mlkaps ga_adaptive.json
+>>>>>>> external/main
 ```
 
 This command will use the `ga-adaptive.json` configuration file to perform the test.

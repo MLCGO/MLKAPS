@@ -9,7 +9,7 @@ Contain the definition for static samplers that only need an array containing th
 
 import numpy as np
 import pandas as pd
-from smt.sampling_methods import Random, LHS
+from smt.sampling_methods import LHS, Random
 
 from .sampler import SamplerError
 from .static_sampler import StaticSampler
@@ -181,7 +181,6 @@ class GenericBoundedSampler(StaticSampler):
 
         # Now that we translated each column, we can create the final dataframe
         translated_samples = pd.DataFrame(translated_columns, columns=columns)
-
         return translated_samples
 
 
