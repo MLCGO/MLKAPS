@@ -15,13 +15,17 @@ class ValueContainer:
     """Base class for value containers.
     Value containers are used, for example, to store parameters and by samplers."""
 
+    def __init__(self, type):
+        assert type in [int, float, str, bool], f"Unknown type: {type}"
+        self.type = type
+
     def split(self, threshold):
         """Split the container into two containers.
         The first container contains all values less than or equal to the threshold.
         The second container contains all values greater than the threshold."""
         raise NotImplementedError("This method should be overridden by subclasses")
 
-    def sample_linear_space(self, n_samples=-1, type="float"):
+    def sample_linear_space(self, n_samples=-1):
         """Return a list of n_samples many values from the container.
         If n_samples is greater than the number of values in the container, return all values in the container."""
         raise NotImplementedError("This method should be overridden by subclasses")
@@ -39,42 +43,45 @@ class ValueContainer:
         """Return the lower and upper bound of the container."""
         raise NotImplementedError("This method should be overridden by subclasses")
 
-    def get_samples(self, indices, type="float"):
-        """Get samples by picking the values at the given indices.
-        The indices are expected to be in the range of the container.
-        float indices are rounded to int. Non-numeric indices are not supported."""
-        indices = np.asarray(indices).round().astype("int")
-        # creating the full sequence might not be optimal for sequences; can be improved if needed
-        vals = np.asarray(self.sample_linear_space())
-        return vals[indices]
+    def map_to_numeric(self, data):
+        """Map the data to float values."""
+        raise NotImplementedError("This method should be overridden by subclasses")
 
-    def get_dtype(self, type):
+    def map_from_numeric(self, indices):
+        """Map numeric representation to values of the container."""
+        raise NotImplementedError("This method should be overridden by subclasses")
+
+    def get_dtype(self):
         "Convert a type string to a numpy dtype"
-        if type == "int":
+        if self.type == int:
             return "int"
-        elif type == "float":
+        elif self.type == float:
             return "float"
-        elif type == "Categorical":
+        elif self.type == str:
             return str
-        elif type == "Boolean":
+        elif self.type == bool:
             return bool
         else:
-            raise ValueError(f"Unknown variable type: {type}")
+            raise ValueError(f"Unknown variable type: {self.type}")
 
 
 class ValueSet(ValueContainer):
     """Container for a set of values.
-    The values in the set are not checked for anything. They are assumed to be valid and of the same type."""
+    The values in the set are not checked for anything.
+    They are assumed to be valid and of the same type."""
+
+    def __init__(self, values, type=float):
+        # call the parent constructor
+        super().__init__(type)
+        self.values = np.sort(values)
 
     def split(self, threshold):
         """Split the sequence into two sequences.
         The first sequence contains the first threshold many elements.
         The second sequence contains all values starting with index >= threshold."""
         assert threshold >= 0 and threshold <= len(self.values), "Threshold must be in the index range of the set"
+        threshold = round(threshold)
         return ValueSet(self.values[:threshold]), ValueSet(self.values[threshold:])
-
-    def __init__(self, values):
-        self.values = sorted(values)
 
     def is_continuous(self):
         return False
@@ -84,27 +91,51 @@ class ValueSet(ValueContainer):
         The size is defined by the number of elements in the set."""
         return len(self.values)
 
-    def get_sampling_bound(self):
+    def get_sampling_bounds(self):
         """Return the lower and upper bounds of the set.
         The bounds of sets are defined by their index space."""
         return [0, len(self.values) - 1]
 
-    def sample_linear_space(self, n_samples=-1, type="float"):
+    def sample_linear_space(self, n_samples=-1):
         """Return a list of n_samples many values from the set.
         If n_samples is greater than the number of values in the set, return all values in the set."""
         if n_samples == 0:
             return None
         if n_samples < 0:
             n_samples = len(self.values)
-        return self.values[0:n_samples] if n_samples < len(self.values) else self.values
+
+        n = self.get_size()
+        return self.map_from_numeric(np.linspace(0, n - 1, n_samples, endpoint=True))
+
+    def map_to_numeric(self, data):
+        """Map the data to float values.
+        The data is expected to be an array of values from the set.
+        The mapping is done by creating a map of the values to their index in the set."""
+        data = data.copy()
+        feature_map = {k: j for j, k in enumerate(self.values)}
+        return np.vectorize(feature_map.get)(data)
+
+    def map_from_numeric(self, indices):
+        """Map numeric representation to values of the container.
+        Get samples by picking the values at the given indices.
+        The indices are expected to be in the range of the container.
+        float indices are rounded to int. Non-numeric indices are not supported."""
+        indices = np.asarray(indices).round().astype("int")
+        # creating the full sequence might not be optimal for sequences; can be improved if needed
+        return self.values[indices]
 
 
 class ValueSequence(ValueContainer):
-    """Container for a sequence of values.
-    The sequence is defined by a start, stop and progression. It includes the start value and excludes the stop value.
+    """Container for a sequence of numeric values.
+    The sequence is defined by a start, stop and progression.
+    It includes the start value and excludes the stop value.
     The progression mode can be "arithmetic" or "geometric"."""
 
-    def __init__(self, start, stop, progression, mode="arithmetic"):
+    def __init__(self, start, stop, progression, mode="arithmetic", type=float):
+        # call the parent constructor
+        super().__init__(type)
+        if type not in [int, float]:
+            raise ValueError(f"Unsupported type: {type}")
         if mode not in ["arithmetic", "geometric"]:
             raise ValueError(f"Unknown mode: {mode}")
         self.start = start
@@ -114,21 +145,15 @@ class ValueSequence(ValueContainer):
         assert mode != "geometric" or progression > 1, "Geometric progression must be greater than 1"
 
     def split(self, threshold):
-        """Split the sequence into two sequences.
-        The first sequence contains the first threshold many elements.
-        The second sequence contains all values starting with index >= threshold."""
+        """Split the sequence into two sequences:
+        - The first sequence contains the first elements in the sequence which are < threshold.
+        - The second sequence contains all trailing values >= threshold."""
         assert (
             threshold >= self.get_sampling_bounds()[0] and threshold <= self.get_sampling_bounds()[1] + 1
         ), "Threshold must be in the index range of the sequence"
-        if self.mode == "arithmetic":
-            return (
-                ValueSequence(self.start, self.start + self.progression * threshold, self.progression),
-                ValueSequence(self.start + self.progression * threshold, self.stop, self.progression),
-            )
-        assert self.mode == "geometric"
         return (
-            ValueSequence(self.start, self.start * (self.progression**threshold), self.progression),
-            ValueSequence(self.start * (self.progression**threshold), self.stop, self.progression),
+            ValueSequence(self.start, threshold, self.progression, self.mode),
+            ValueSequence(threshold, self.stop, self.progression, self.mode),
         )
 
     def is_continuous(self):
@@ -138,39 +163,72 @@ class ValueSequence(ValueContainer):
         """Return the size of the sequence.
         The size is defined by the number of elements in the sequence."""
         if self.mode == "arithmetic":
-            return (self.stop - self.start + self.progression - 1) // self.progression
+            return int((self.stop - self.start + self.progression - 1) // self.progression)
         assert self.mode == "geometric"
-        return int(math.log(self.stop - self.start + self.progression - 1, self.progression))
+        eps = np.finfo(np.float32).eps
+        return int(math.log((self.stop * self.progression - eps) / self.start, self.progression))
 
     def get_sampling_bounds(self):
-        """Return the lower and upper bounds of the sequence.
-        The bounds of sequences are defined by their index space."""
-        return [0, self.get_size() - 1]
+        """Return the lower and upper bounds of the sequence."""
+        if self.mode == "arithmetic":
+            last = self.start + self.progression * (self.get_size() - 1)
+        else:
+            last = self.start * (self.progression ** (self.get_size() - 1))
+        return [self.start, last]
 
-    def sample_linear_space(self, n_samples=-1, type="float"):
+    def sample_linear_space(self, n_samples=-1):
         """Return a list of n_samples many values from the sequence.
         If n_samples is greater than the number of values in the sequence, return all values in the sequence."""
-        if type not in ["int", "float"]:
-            raise ValueError(f"Unknown type: {type}")
         if n_samples == 0:
             return None
         if n_samples == 1:
             return [self.start]
 
-        dtype = self.get_dtype(type)
+        n = self.get_size()
+        if n_samples < 0:
+            n_samples = n
+        indices = np.round(np.linspace(0, n - 1, n_samples, endpoint=True)).astype("int")
         if self.mode == "arithmetic":
-            stop = self.stop
-            if n_samples > 0:
-                stop = min(self.stop, 1 + self.start + self.progression * (n_samples - 1))
-            return np.arange(self.start, stop, self.progression, dtype=dtype)
 
-        assert self.mode == "geometric"
-        n = int(math.log(self.stop - self.start + self.progression - 1, self.progression))
-        if n_samples > 0:
-            n = min(n_samples, n)
-        res = np.full(n, self.progression, dtype=dtype)
-        res[0] = self.start
-        return np.cumprod(res)
+            def gen():
+                for x in range(n_samples):
+                    yield self.start + indices[x] * self.progression
+
+        else:
+            # geometric
+            def gen():
+                for x in range(n_samples):
+                    yield self.start * (self.progression ** indices[x])
+
+        return np.fromiter(gen(), dtype=self.get_dtype(), count=n_samples)
+
+    def map_to_numeric(self, data):
+        """Map the data to float values.
+        The data is expected to be an array of values from the set.
+        The mapping is done by creating a map of the values to their index in the set."""
+        if self.type == int:
+            return np.round(data).astype("int")
+        return data
+
+    def map_from_numeric(self, data):
+        """Map numeric representation to values of the container.
+        "Quantize" input data to values in the sequence."""
+        # for each element in data, find the clostest element in the sequence defined by start, stop and progression
+        if self.mode == "arithmetic":
+            data = np.clip(data, self.start, self.stop)
+            data = np.round((data - self.start) / self.progression).astype("int")
+            data = data * self.progression + self.start
+        else:
+            # geometric
+            data = np.clip(data, *self.get_sampling_bounds())
+            for i in range(len(data)):
+                if data[i] > self.start:
+                    # is there a more elegant way to do this?
+                    pos = math.log(data[i] / self.start, self.progression)
+                    low = self.start * (self.progression ** math.floor(pos))
+                    high = self.start * (self.progression ** math.ceil(pos))
+                    data[i] = low if data[i] - low < high - data[i] else high
+        return data.astype(self.get_dtype())
 
 
 class ValueRange(ValueContainer):
@@ -179,7 +237,10 @@ class ValueRange(ValueContainer):
     The range is inclusive of the start value. The stop value and be either inclusive or exclusive.
     The range is always defined by floats."""
 
-    def __init__(self, start, stop, include_high_bound=True):
+    def __init__(self, start, stop, include_high_bound=True, type=float):
+        # call the parent constructor
+        super().__init__(type)
+        assert type == float, "Only float type is supported for continuous ranges"
         assert start <= stop, "Start must be <= stop"
         self.start = start
         self.stop = stop
@@ -208,21 +269,27 @@ class ValueRange(ValueContainer):
         assert self.include_high_bound, "Upper bound must be inclusive"
         return [self.start, self.stop]
 
-    def sample_linear_space(self, n_samples, type="float"):
+    def sample_linear_space(self, n_samples):
         """Return a list of n_samples many values from the range.
         If n_samples is greater than the number of values in the range, return all values in the range."""
         assert n_samples >= 0, "Cannot sample full continuous space, n_samples must be >= 0"
-        assert type == "float", "Only float type is supported for continuous ranges"
         if n_samples == 0:
             return []
         if n_samples == 1:
             return [self.start]
 
-        dtype = self.get_dtype(type)
+        dtype = self.get_dtype()
         return np.linspace(self.start, self.stop, num=n_samples, endpoint=self.include_high_bound, dtype=dtype)
 
-    def get_samples(self, indices, type="float"):
-        raise ValueError("Cannot index continuous space")
+    def map_to_numeric(self, data):
+        """Map the data to float values.
+        Nothing to be done here, the data is already in the correct format."""
+        return data.astype(self.get_dtype())
+
+    def map_from_numeric(self, data):
+        """Map numeric representation to values of the container.
+        Nothing to be done here, the data is already in the correct format."""
+        return data.astype(self.get_dtype())
 
 
 def _mask_variables(variables: dict, mask: list) -> dict:

@@ -8,7 +8,7 @@ SPDX-License-Identifier: BSD-3-Clause
 import numpy as np
 import pandas as pd
 
-from mlkaps.sampling import ValueRange
+from mlkaps.sampling import ValueRange, ValueSet, ValueSequence
 from mlkaps.sampling.adaptive import HVSampler
 
 
@@ -24,6 +24,32 @@ class TestHVSampler:
         data = sampler.sample(100, None, f)
         data = sampler.sample(200, data, f)
         assert data.shape == (300, 2)
+        assert np.all((data["a"] >= 0) & (data["a"] <= 5))
+
+    def test_valueset(self):
+        vals = [1, 2, 3, 4, 5]
+        features = {"a": ValueSet(vals)}
+
+        def f(df):
+            return pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+
+        sampler = HVSampler({"a": "Categorical"}, features)
+        data = sampler.sample(100, None, f)
+        data = sampler.sample(200, data, f)
+        assert data.shape == (300, 2)
+        assert np.all(data["a"].isin(vals))
+
+    def test_valuesequence(self):
+        features = {"a": ValueSequence(0, 50, 3)}
+
+        def f(df):
+            return pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
+
+        sampler = HVSampler({"a": "float"}, features)
+        data = sampler.sample(100, None, f)
+        data = sampler.sample(200, data, f)
+        assert data.shape == (300, 2)
+        assert np.all(data["a"].isin(list(range(0, 50, 3))))
 
     def test_can_run_2d(self):
         features = {"a": ValueRange(0, 5), "b": ValueRange(0, 5)}
@@ -35,6 +61,7 @@ class TestHVSampler:
         data = sampler.sample(100, None, f)
         data = sampler.sample(200, data, f)
         assert data.shape == (300, 3)
+        assert np.all((data["a"] >= 0) & (data["a"] <= 5))
 
     def test_return_correct_n_samples_bootstrap(self):
         # Check that we return the correct number of samples, even when we use bootstrap

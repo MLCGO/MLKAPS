@@ -21,7 +21,7 @@ from smt.sampling_methods import Random
 
 from mlkaps.sampling.variable_mapping import map_float_to_variables, map_variables_to_numeric
 
-from ..generic_bounded_sampler import LhsSampler, convert_variables_bounds_to_numeric
+from ..generic_bounded_sampler import LhsSampler
 from ..sampler import SamplerError
 from .adaptive_sampler import AdaptiveSampler
 
@@ -467,7 +467,7 @@ class HVSampler(AdaptiveSampler):
     If used directly, the user must handles the stopping criteria and the final dataset itself
 
     >>> from mlkaps.sampling import ValueSequence
-    >>> features = {"x": ValueSequence(0, 6, 1)}
+    >>> features = {"x": ValueSequence(0, 6, 1, type=int)}
     >>> # Define the function to sample. which MUST return a dataframe containing the original
     >>> # dataframe, and the sampled values as new columns
     >>> f = lambda df: pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
@@ -555,20 +555,17 @@ class HVSampler(AdaptiveSampler):
         create map to numeric values. This also includes integers which are casted to float
         """
 
+        self.has_mapped_features = False
+
         if self.variables_values is None or self.variables_types is None:
-            self.has_mapped_features = False
             return
 
-        # Check whether any of the features non-float
-        # If true, then we must convert the features to float values
-        if not any(v in ["Categorical", "Boolean", "int"] for v in self.variables_types.values()):
-            self.has_mapped_features = False
-            self.numerical_features = self.variables_values
-            return
+        self.numerical_features = self.variables_values.copy()
 
-        self.has_mapped_features = True
-
-        self.numerical_features = convert_variables_bounds_to_numeric(self.variables_types, self.variables_values)
+        # Check whether any of the features is no continuous
+        # If true, then the features are mapped to numeric values (indices)
+        if any(not v.is_continuous() for v in self.variables_values.values()):
+            self.has_mapped_features = True
 
     def dump(self, output_directory: Path):
         """

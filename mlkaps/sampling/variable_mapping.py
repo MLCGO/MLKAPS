@@ -7,7 +7,6 @@ SPDX-License-Identifier: BSD-3-Clause
 Utilities for mapping variables of different types (int, float, categorical, ...) to numerical values and back
 """
 
-import numpy as np
 import pandas as pd
 
 
@@ -50,16 +49,8 @@ def map_variables_to_numeric(data: pd.DataFrame, variables_types: dict, variable
 
     # Copy the data to avoid side-effects
     data = data.copy()
-    for variable, var_type in variables_types.items():
-        if var_type in ["Categorical", "Boolean"]:
-            # We map every category to one integer using a map
-            feature_map = {k: j for j, k in enumerate(variables_values[variable])}
-            data[variable] = np.vectorize(feature_map.get)(data[variable])
-
-        elif var_type == "int":
-            # Round and use the correct type
-            data[variable] = data[variable].astype(float)
-
+    for variable, values in variables_values.items():
+        data[variable] = values.map_to_numeric(data[variable])
     return data
 
 
@@ -94,7 +85,5 @@ def map_float_to_variables(data: pd.DataFrame, variables_types: dict, variables_
     # Copy the data to avoid side-effects
     data = data.copy()
     for variable, values in variables_values.items():
-        if not values.is_continuous():
-            data[variable] = values.get_samples(data[variable])
-
+        data[variable] = values.map_from_numeric(data[variable])
     return data

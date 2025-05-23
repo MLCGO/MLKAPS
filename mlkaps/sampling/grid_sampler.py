@@ -32,7 +32,7 @@ class GridSampler(StaticSampler):
         """
 
         def generate_grid_samples(variable_values, variable_type, n_samples):
-            return variable_values.sample_linear_space(n_samples, variable_type)
+            return variable_values.sample_linear_space(n_samples)
 
         variables = list(self.variables_types.keys())
         grids = [
