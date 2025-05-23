@@ -81,7 +81,7 @@ class ValueSet(ValueContainer):
         The second sequence contains all values starting with index >= threshold."""
         assert threshold >= 0 and threshold <= len(self.values), "Threshold must be in the index range of the set"
         threshold = round(threshold)
-        return ValueSet(self.values[:threshold]), ValueSet(self.values[threshold:])
+        return ValueSet(self.values[:threshold], self.type), ValueSet(self.values[threshold:], self.type)
 
     def is_continuous(self):
         return False
@@ -138,9 +138,9 @@ class ValueSequence(ValueContainer):
             raise ValueError(f"Unsupported type: {type}")
         if mode not in ["arithmetic", "geometric"]:
             raise ValueError(f"Unknown mode: {mode}")
-        self.start = start
-        self.stop = stop
-        self.progression = progression
+        self.start = type(start)
+        self.stop = type(stop)
+        self.progression = type(progression)
         self.mode = mode
         assert mode != "geometric" or progression > 1, "Geometric progression must be greater than 1"
 
@@ -152,8 +152,8 @@ class ValueSequence(ValueContainer):
             threshold >= self.get_sampling_bounds()[0] and threshold <= self.get_sampling_bounds()[1] + 1
         ), "Threshold must be in the index range of the sequence"
         return (
-            ValueSequence(self.start, threshold, self.progression, self.mode),
-            ValueSequence(threshold, self.stop, self.progression, self.mode),
+            ValueSequence(self.start, threshold, self.progression, self.mode, self.type),
+            ValueSequence(threshold, self.stop, self.progression, self.mode, self.type),
         )
 
     def is_continuous(self):
@@ -165,7 +165,7 @@ class ValueSequence(ValueContainer):
         if self.mode == "arithmetic":
             return int((self.stop - self.start + self.progression - 1) // self.progression)
         assert self.mode == "geometric"
-        eps = np.finfo(np.float32).eps
+        eps = 1e-12  # np.finfo(np.float32).eps
         return int(math.log((self.stop * self.progression - eps) / self.start, self.progression))
 
     def get_sampling_bounds(self):
@@ -242,8 +242,8 @@ class ValueRange(ValueContainer):
         super().__init__(type)
         assert type == float, "Only float type is supported for continuous ranges"
         assert start <= stop, "Start must be <= stop"
-        self.start = start
-        self.stop = stop
+        self.start = type(start)
+        self.stop = type(stop)
         self.include_high_bound = include_high_bound
 
     def split(self, threshold):
@@ -253,8 +253,8 @@ class ValueRange(ValueContainer):
         # is it ok that this will have threshold in both ranges?
         assert threshold >= self.start and threshold <= self.stop, "threshold must be within the range"
         return (
-            ValueRange(self.start, threshold, self.include_high_bound),
-            ValueRange(threshold, self.stop, self.include_high_bound),
+            ValueRange(self.start, threshold, self.include_high_bound, self.type),
+            ValueRange(threshold, self.stop, self.include_high_bound, self.type),
         )
 
     def is_continuous(self):
