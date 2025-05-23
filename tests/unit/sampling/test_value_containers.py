@@ -135,8 +135,6 @@ class TestValueContainers:
         assert np.array_equal(splits[0].sample_linear_space(), [])
         assert np.array_equal(splits[1].sample_linear_space(), [1, 2, 3, 4, 5])
 
-        # [2, 4, 8, 16, 32, 64, 128]
-
     def test_split_sequence_geometric(self):
         value_seq = ValueSequence(2.0, 129.0, 2.0, "geometric", type=float)
         splits = value_seq.split(64)

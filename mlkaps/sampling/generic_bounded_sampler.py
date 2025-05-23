@@ -19,8 +19,8 @@ from .variable_mapping import map_float_to_variables
 def convert_variables_bounds_to_numeric(variables_types, variables_values):
     """
     Convert a dictionary of variables bounds to a dictionary of numeric bounds:
-    - Non-continuous variables are converted to [0, n_values-1]
-    - For continuous (float) variables, the bounds are set to [min, max] where min and max are the
+    - Categorical variables are converted to [0, n_values-1]
+    - For numeric variables, the bounds are set to [min, max] where min and max are the
       lowest and highest possible values for the variable.
 
     :param variables_types: A dictionary associating the name of each variable to its type. The type can be either
