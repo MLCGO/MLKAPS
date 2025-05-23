@@ -11,8 +11,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier, plot_tree
 import sklearn.dummy
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 
 from mlkaps.configuration import ExperimentConfig
 

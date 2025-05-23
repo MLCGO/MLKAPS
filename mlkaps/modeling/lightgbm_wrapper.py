@@ -5,11 +5,12 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-from mlkaps.modeling.model_wrapper import ModelWrapper
-from mlkaps.modeling.optuna_model_tuner import OptunaModelTuner
-import pandas as pd
 import lightgbm
 import optuna
+import pandas as pd
+
+from mlkaps.modeling.model_wrapper import ModelWrapper
+from mlkaps.modeling.optuna_model_tuner import OptunaModelTuner
 
 
 class LightGBMWrapper(ModelWrapper, wrapper_name="lightgbm"):

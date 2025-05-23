@@ -8,7 +8,6 @@ SPDX-License-Identifier: BSD-3-Clause
 import pathlib
 import pandas as pd
 import logging
-from tqdm import tqdm
 import pprint
 import textwrap
 
@@ -24,6 +23,7 @@ from .mono_kernel_executor import MonoKernelExecutor
 from .function_harness import MonoFunctionHarness, FunctionPath
 from .subprocess_harness import MonoSubprocessHarness
 from .failed_run_resolver import DiscardResolver, ConstantResolver
+from .samples_checkpoint import SamplesCheckpoint
 
 
 def _get_key_or_error(cdict: dict, key: str, error_msg: str | None = None, default=None, fatal=True):
@@ -62,7 +62,7 @@ class _StaticSamplerInterfaceWrapper:
         config: ExperimentConfig,
         sampler_type: str,
         config_dict: dict,
-        output_path: pathlib.Path,
+        samples_checkpoint: SamplesCheckpoint,
     ):
         self.kernel_sampler = kernel_sampler
 
@@ -72,7 +72,7 @@ class _StaticSamplerInterfaceWrapper:
         self.config = config
         self.sampler_type = sampler_type
         self.config_dict = config_dict
-        self.output_path = output_path
+        self.samples_checkpoint = samples_checkpoint
 
     def __call__(self) -> pd.DataFrame:
         sampler, n_samples = self._build_sampler()
@@ -91,26 +91,15 @@ class _StaticSamplerInterfaceWrapper:
         return sampler, n_samples
 
     def _sample(self, sampler, n_samples):
-        self.output_path.parent.mkdir(parents=True, exist_ok=True)
+        samples_reloaded = self.samples_checkpoint.maybe_load_samples()
+        if samples_reloaded is not None:
+            n_samples = n_samples - len(samples_reloaded)
 
         samples = sampler.sample(n_samples)
-
-        kBatchSize = 100
-        batches = min(kBatchSize, len(samples))
-        res = []
-        # Run the samples in batches in order to periodically save the results to file
-        with tqdm(total=len(samples), desc="Running samples", leave=None) as pbar:
-            self.kernel_sampler.progress_bar = pbar
-            for i in range(0, len(samples), batches):
-                batch = samples.iloc[i : i + batches]
-                results = self.kernel_sampler(batch)
-                res.append(results)
-
-                tmp = pd.concat(res, axis=0).reset_index(drop=True)
-                tmp.to_csv(self.output_path, index=False)
-
-        res = tmp
-        return res
+        samples = self.kernel_sampler(samples)
+        results = pd.concat([samples_reloaded, samples])
+        results.reset_index(drop=True, inplace=True)
+        return results
 
 
 class _GAAdaptiveInterfaceWrapper:
@@ -121,7 +110,7 @@ class _GAAdaptiveInterfaceWrapper:
         config: ExperimentConfig,
         sampler_type: str,
         config_dict: dict,
-        output_path: pathlib.Path,
+        samples_checkpoint: SamplesCheckpoint,
     ):
         self.kernel_sampler = kernel_sampler
 
@@ -130,12 +119,10 @@ class _GAAdaptiveInterfaceWrapper:
 
         self.config = config
         self.config_dict = config_dict
-        self.output_path = output_path
+        self.samples_checkpoint = samples_checkpoint
 
     def __call__(self) -> pd.DataFrame:
         sampler = self._build_sampler()
-        res = sampler()
-        res.to_csv(self.output_path, index=False)
         return sampler()
 
     def _build_sampler(self):
@@ -164,6 +151,7 @@ class _GAAdaptiveInterfaceWrapper:
         sampler = GAAdaptiveSampler(
             self.kernel_sampler,
             self.config,
+            self.samples_checkpoint,
             n_samples,
             samples_per_iteration,
             bootstrap_ratio,
@@ -202,7 +190,7 @@ class _AdaptiveSamplerInterfaceWrapper:
         config: ExperimentConfig,
         sampler_type: str,
         config_dict: dict,
-        output_path: pathlib.Path,
+        samples_checkpoint: SamplesCheckpoint,
     ):
         self.kernel_sampler = kernel_sampler
 
@@ -212,12 +200,12 @@ class _AdaptiveSamplerInterfaceWrapper:
         self.config = config
         self.sampler_type = sampler_type
         self.config_dict = config_dict
-        self.output_path = output_path
+        self.samples_checkpoint = samples_checkpoint
 
     def __call__(self) -> pd.DataFrame:
         orchestrator = self._build_sampler()
         samples = orchestrator.run()
-        samples.to_csv(self.output_path, index=False)
+        samples.reset_index(drop=True, inplace=True)
         return samples
 
     def _build_sampler(self):
@@ -244,6 +232,7 @@ class _AdaptiveSamplerInterfaceWrapper:
             self.kernel_sampler,
             sampler,
             output_directory=self.config.output_directory,
+            samples_checkpoint=self.samples_checkpoint,
             stopping_criteria=stopping_criteria,
             **orchestrator_parameters,
         )
@@ -253,15 +242,16 @@ class _AdaptiveSamplerInterfaceWrapper:
 
 class ExecutorFactory:
 
-    def __init__(self, config: ExperimentConfig, config_dict: dict):
+    def __init__(self, config: ExperimentConfig, config_dict: dict, samples_checkpoint: SamplesCheckpoint):
         self.config = config
         self.config_dict = config_dict
+        self.samples_checkpoint = samples_checkpoint
 
     def __call__(self):
         failure_resolver = self._build_failure_resolver()
         runner = self._build_runner()
 
-        kernel_sampler = MonoKernelExecutor(runner, failure_resolver)
+        kernel_sampler = MonoKernelExecutor(runner, failure_resolver, self.samples_checkpoint)
         return kernel_sampler
 
     def _build_runner(self):
@@ -340,20 +330,18 @@ class ExecutorFactory:
 
 class SamplingSystemFactory:
 
-    def __init__(self, config: ExperimentConfig, config_dict: dict):
+    def __init__(self, config: ExperimentConfig, config_dict: dict, samples_checkpoint: SamplesCheckpoint):
         self.config = config
         self.config_dict = config_dict
+        self.samples_checkpoint = samples_checkpoint
 
     def __call__(self):
-        kernel_sampler = ExecutorFactory(self.config, self.config_dict["SAMPLING"])()
+        kernel_sampler = ExecutorFactory(self.config, self.config_dict["SAMPLING"], self.samples_checkpoint)()
         sampler = self._build_sampler(kernel_sampler)
 
         return sampler
 
     def _build_sampler(self, kernel_sampler):
-        output_path = self.config.output_directory / "kernel_sampling/samples.csv"
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
         stype = self.config_dict["SAMPLING"]["sampler"]
         sparam = self.config_dict["SAMPLING"].get("sampler_parameters", {})
 
@@ -373,10 +361,10 @@ class SamplingSystemFactory:
         if wrapper is None:
             raise ValueError(f"Unknown sampler type '{stype}'")
 
-        return wrapper(kernel_sampler, self.config, stype, sparam, output_path)
+        return wrapper(kernel_sampler, self.config, stype, sparam, self.samples_checkpoint)
 
 
-def _build_kernel_sampler(config: ExperimentConfig, config_dict: dict):
+def _build_kernel_sampler(config: ExperimentConfig, config_dict: dict, samples_checkpoint: SamplesCheckpoint):
     """
     Build an appropriate sampled depending on whether the sampling method is one-shot or adaptive
 
@@ -391,13 +379,13 @@ def _build_kernel_sampler(config: ExperimentConfig, config_dict: dict):
         An appropriate sampler for use with the sampling method
     """
 
-    sampler_factory = SamplingSystemFactory(config, config_dict)
+    sampler_factory = SamplingSystemFactory(config, config_dict, samples_checkpoint)
     sampler = sampler_factory()
 
     return sampler
 
 
-def sample_kernel(config: ExperimentConfig, config_dict: dict) -> pd.DataFrame:
+def sample_kernel(config: ExperimentConfig, config_dict: dict, samples_checkpoint: SamplesCheckpoint) -> pd.DataFrame:
     """
     Run the kernel sampling module on the user kernel
 
@@ -409,15 +397,10 @@ def sample_kernel(config: ExperimentConfig, config_dict: dict) -> pd.DataFrame:
     Returns
     -------
     res:
-        A labelled dataset of sampled points
+        A labelled dataset of sampled points,  The dataset is also logged in the kernel_sample csv file.
 
     """
-    sampler = _build_kernel_sampler(config, config_dict)
-
+    sampler = _build_kernel_sampler(config, config_dict, samples_checkpoint)
     res = sampler()
-    # Ensures that the dataframe contains valid dtype
-    # This is required to avoid "object" types in the dataframe (which causes issues with sklearn
-    # or other models)
-    res.convert_dtypes()
-
+    samples_checkpoint.consistency_check(res)
     return res

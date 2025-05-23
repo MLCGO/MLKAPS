@@ -32,7 +32,7 @@ from .. import SamplerError
 from .. import RandomSampler, LhsSampler
 import logging
 import time
-
+from mlkaps.sample_collection.samples_checkpoint import SamplesCheckpoint
 
 from mlkaps.modeling.encoding import encode_dataframe
 
@@ -49,6 +49,7 @@ class GAAdaptiveSampler:
         self,
         execution_function: Callable[[pd.DataFrame], pd.DataFrame],
         configuration: ExperimentConfig,
+        samples_checkpoint: SamplesCheckpoint,
         n_samples: int,
         samples_per_iteration: int,
         bootstrap_ratio: float,
@@ -79,11 +80,12 @@ class GAAdaptiveSampler:
         :param final_ga_ratio: The ratio of points taken with the GA Algorithm
             at the last iteration of the algorithm. See initial_ga_ratio.
         """
-
         self.config = configuration
         self.features = configuration["parameters"]["features_values"]
         self.input_features = configuration.input_parameters
         self.execution_function = execution_function
+
+        self.samples_checkpoint = samples_checkpoint
 
         self.n_samples = n_samples
         self.samples_per_iteration = int(samples_per_iteration)
@@ -103,9 +105,6 @@ class GAAdaptiveSampler:
             error_metric="cov",
         )
 
-        # FIXME: dirty quick-restart
-        self.output_path = self.config.output_directory / "kernel_sampling/samples.csv"
-
         self.models = {}
         self.iteration = 0
 
@@ -117,7 +116,9 @@ class GAAdaptiveSampler:
         """
 
         if self.samples_per_iteration > self.n_samples or self.samples_per_iteration < 1:
-            raise SamplerError("samples_per_iteration must be between 1 and n_samples")
+            raise SamplerError(
+                f"samples_per_iteration({self.samples_per_iteration}) must be between 1 and n_samples({self.n_samples})"
+            )
 
         if self.bootstrap_ratio > 1 or self.bootstrap_ratio < 0:
             raise SamplerError("bootstrap_ratio must be between 0 and 1")
@@ -150,9 +151,8 @@ class GAAdaptiveSampler:
 
             try:
                 logging.info("GA-Adaptive started")
-
                 n_bootstrap = int(self.n_samples * self.bootstrap_ratio)
-                samples = self._maybe_load_samples()
+                samples = self.samples_checkpoint.maybe_load_samples()
                 if samples is not None:
                     pbar.update(len(samples))
                     n_bootstrap = n_bootstrap - len(samples)
@@ -163,8 +163,6 @@ class GAAdaptiveSampler:
                     lhs_samples = self._lhs_bootstrap(n_bootstrap, pbar)
                     samples = pd.concat([samples, lhs_samples])
 
-                samples.to_csv(self.output_path, index=False)
-
                 logging.info("Bootstrapping finished, starting GA-Adaptive loop")
                 samples = self._resampling_loop(samples, pbar)
                 return samples
@@ -172,25 +170,12 @@ class GAAdaptiveSampler:
                 # Wrap any exception in a SamplerError
                 raise SamplerError("GA-Adaptive sampling failed!") from exc
 
-    def _maybe_load_samples(self):
-        if not self.output_path.exists():
-            return None
-
-        logging.info(f"Found samples at '{self.output_path}', quick-restarting")
-        logging.warning(
-            f"GA-Adaptive will quick-restart by default, this is currently not configurable\n"
-            f"Please delete '{self.output_path} to skip quick-restart."
-        )
-        loaded_samples = pd.read_csv(self.output_path)
-        return loaded_samples
-
     def _lhs_bootstrap(self, n_samples, pbar):
         if n_samples <= 0:
             return None
 
         # Bootstrap the sampling with an LHS
         pbar.set_description("GA-Adaptive: bootstrapping with LHS")
-
         sampler = LhsSampler(self.config.parameters_type, self.features)
         lhs_samples = sampler.sample(n_samples)
 
@@ -210,7 +195,6 @@ class GAAdaptiveSampler:
             curr_ratio = self.initial_ga_ratio + final_ratio_delta * (len(samples) / self.n_samples)
 
             n_ga_points = int(np.round(curr_ratio * leftover_samples))
-
             new_points = self._pick_ga_points(samples, n_ga_points)
 
             # We randomly pick the remaining points for the exploration component
@@ -225,12 +209,8 @@ class GAAdaptiveSampler:
             random_samples = sampler.sample(delta)
             random_samples = pd.concat([samples, self._sample_kernel(random_samples)])
 
-            # Concat GA points with HVS picked samples
-            # Note that the HVS sampler already concatenates the new points with the old ones,
-            # so no need to do it here
-
+            # Concat GA points with random_samples
             ga_points = self._sample_kernel(new_points)
-
             samples = pd.concat(
                 [
                     random_samples,
@@ -238,9 +218,7 @@ class GAAdaptiveSampler:
                 ]
             )
             samples.reset_index(drop=True, inplace=True)
-
-            # FIXME: dirty quick-restart
-            samples.to_csv(self.output_path, index=False)
+            self.samples_checkpoint.consistency_check(samples)
 
             self.iteration += 1
 
@@ -319,7 +297,11 @@ class GAAdaptiveSampler:
         # print(self.config.parameters_type.keys())
         # print(self.config.parameters_type.values())
         # Fit models to the currently sampled points
-        models = self._fit_models(samples)
+        try:
+            models = self._fit_models(samples)
+        except ValueError as e:
+            logging.error(f"Error fitting models: {e}")
+            raise SamplerError("Failed to fit models due to a value error") from e
 
         # Create the GA object
         problem = DesignParametersProblem(self.config, models)

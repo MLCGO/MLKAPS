@@ -28,4 +28,3 @@ MLKAPS will call the compilation script with the following arguments:
    :caption: Input format for the compilation script:
 
     compilation_script <flag_1> <flag_2> ... <flag_n>
-

@@ -7,8 +7,9 @@ SPDX-License-Identifier: BSD-3-Clause
 
 import os
 from pathlib import Path
-from deprecated import deprecated
+
 import numpy as np
+from deprecated import deprecated
 
 from ._parsing_helpers import set_if_defined
 
@@ -81,7 +82,6 @@ def _maybe_parse_design_parameters(configuration, json_section):
         raise Exception("The configuration file does not define any design parameters")
 
     keys = configuration["parameters"]
-
     design_parameter = json_section["DESIGN_PARAMETERS"]
     keys["design"] = list(design_parameter)
     configuration.add_features(design_parameter)

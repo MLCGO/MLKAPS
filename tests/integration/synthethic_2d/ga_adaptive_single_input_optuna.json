@@ -1,87 +1,91 @@
 {
-    "EXPERIMENT": {
-      "objectives": [
-        "r"
-      ]
-    },
-    "PARAMETERS": {
-      "KERNEL_INPUTS": {
-        "y": {
-          "Type": "float",
-          "Values": [
-            1,1
-          ]
-        },
-        "x": {
-          "Type": "float",
-          "Values": [
-            2,2
-          ]
-        }
-      },
-      "DESIGN_PARAMETERS": {
-        "b": {
-          "Type": "float",
-          "Values": [1, 5]
-        }
-      }
-    },
-    "SAMPLING": {
-      "runner": "executable",
-      "runner_parameters": {
-        "kernel": "main.py",
-        "parameters_order": [
-          "x",
-          "y",
-          "b"
+  "EXPERIMENT": {
+    "objectives": [
+      "r"
+    ]
+  },
+  "PARAMETERS": {
+    "KERNEL_INPUTS": {
+      "y": {
+        "Type": "float",
+        "Values": [
+          1,
+          1
         ]
       },
-      "sampler": "ga_adaptive",
-      "sampler_parameters": {
-        "n_samples": 50,
-        "n_iterations": 10,
-        "bootstrap_ratio": 0.20,
-        "initial_ga_ratio": 0.2,
-        "final_ga_ratio": 0.8,
-        "use_optuna": true
+      "x": {
+        "Type": "float",
+        "Values": [
+          2,
+          2
+        ]
       }
     },
-    "MODELING": {
-      "modeling_method": "lightgbm",
-      "parameters": {
-        "objective": "mae",
-        "n_jobs": -1,
-        "verbose": -1,
-        "n_estimators": 20,
-        "min_data_in_leaf": 20,
-        "boosting": "gbdt",
-        "learning_rate": 0.15
+    "DESIGN_PARAMETERS": {
+      "b": {
+        "Type": "float",
+        "Values": [
+          1,
+          5
+        ]
       }
-  
-    },
-    "OPTIMIZATION": {
-      "sampling": {
-        "sampler": {
-          "sampling_method": "grid"
-        },
-        "sample_count": {
-          "x": 1,
-          "y": 1
-        }
-      },
-      "optimization_method": "genetic",
-      "optimization_parameters": {
-        "evolution": {
-          "pop_size": 20
-        },
-        "termination": {
-          "time": "00:00:5"
-        },
-        "selection_method": "mono",
-        "early_stopping": true
-      }
-    },
-    "CLUSTERING": {
-      "clustering_method": "decision_tree"
     }
+  },
+  "SAMPLING": {
+    "runner": "executable",
+    "runner_parameters": {
+      "kernel": "main.py",
+      "parameters_order": [
+        "x",
+        "y",
+        "b"
+      ]
+    },
+    "sampler": "ga_adaptive",
+    "sampler_parameters": {
+      "n_samples": 50,
+      "n_iterations": 10,
+      "bootstrap_ratio": 0.2,
+      "initial_ga_ratio": 0.2,
+      "final_ga_ratio": 0.8,
+      "use_optuna": true
+    }
+  },
+  "MODELING": {
+    "modeling_method": "lightgbm",
+    "parameters": {
+      "objective": "mae",
+      "n_jobs": -1,
+      "verbose": -1,
+      "n_estimators": 20,
+      "min_data_in_leaf": 20,
+      "boosting": "gbdt",
+      "learning_rate": 0.15
+    }
+  },
+  "OPTIMIZATION": {
+    "sampling": {
+      "sampler": {
+        "sampling_method": "grid"
+      },
+      "sample_count": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    "optimization_method": "genetic",
+    "optimization_parameters": {
+      "evolution": {
+        "pop_size": 20
+      },
+      "termination": {
+        "time": "00:00:5"
+      },
+      "selection_method": "mono",
+      "early_stopping": true
+    }
+  },
+  "CLUSTERING": {
+    "clustering_method": "decision_tree"
   }
+}

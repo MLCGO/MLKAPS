@@ -5,9 +5,10 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-import pytest
-from mlkaps.sampling.adaptive.multilevel_hvs import MultilevelHVS
 import pandas as pd
+import pytest
+
+from mlkaps.sampling.adaptive.multilevel_hvs import MultilevelHVS
 
 
 def _run_simple_multilevel_hvs(features_types, features_values, levels):

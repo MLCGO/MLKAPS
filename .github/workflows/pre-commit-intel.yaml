@@ -1,0 +1,21 @@
+name: Pre-commit-intel
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pre-commit-github:
+    if: github.repository == 'intel-sandbox/frameworks.performance-modeling.ml-kaps'
+    runs-on: tpi-ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - uses: intel-sandbox/pre-commit-action@main

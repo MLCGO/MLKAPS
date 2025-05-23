@@ -16,9 +16,9 @@ class SamplerFactory:
 
     def from_config(self, sampler_name, config_dict: dict = {}):
         # Temporary hack to avoid circular inclusions
-        from .generic_bounded_sampler import RandomSampler, LhsSampler
-        from .grid_sampler import GridSampler
         from .adaptive import HVSampler, MultilevelHVS
+        from .generic_bounded_sampler import LhsSampler, RandomSampler
+        from .grid_sampler import GridSampler
         from .sampler import SamplerError
 
         mapping = {

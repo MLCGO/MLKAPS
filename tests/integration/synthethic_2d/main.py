@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from math import sin, cos
+from math import cos, sin
 
 
 def main(cdict: dict | None = None):

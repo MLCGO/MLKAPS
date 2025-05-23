@@ -8,24 +8,22 @@ Definition of the Hiearchical Variance Sampling (HVS) adaptive sampling method
 based on DOI:10.1007/978-3-642-32820-6_11
 """
 
-from typing import Callable
+import textwrap
 from pathlib import Path
+from typing import Callable
+
 import numpy as np
 import pandas as pd
 from numpy import ceil, sqrt
 from scipy import stats
 from sklearn.tree import DecisionTreeRegressor
-import textwrap
 from smt.sampling_methods import Random
 
-from .adaptive_sampler import AdaptiveSampler
+from mlkaps.sampling.variable_mapping import map_float_to_variables, map_variables_to_numeric
+
+from ..generic_bounded_sampler import LhsSampler, convert_variables_bounds_to_numeric
 from ..sampler import SamplerError
-from mlkaps.sampling.variable_mapping import (
-    map_variables_to_numeric,
-    map_float_to_variables,
-)
-from ..generic_bounded_sampler import LhsSampler
-from ..generic_bounded_sampler import convert_variables_bounds_to_numeric
+from .adaptive_sampler import AdaptiveSampler
 
 
 def _error_variance(confidence: float, input: pd.DataFrame) -> float:
@@ -470,7 +468,7 @@ class HVSampler(AdaptiveSampler):
     >>> features = {"x": [0, 5]}
     >>> # Define the function to sample. which MUST return a dataframe containing the original
     >>> # dataframe, and the sampled values as new columns
-    >>> f = lambda df: pd.concat([df, df.apply(lambda x: x[0], axis=1)], axis=1)
+    >>> f = lambda df: pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
     >>> sampler = HVSampler({"x": "int"}, features)
     >>> samples = sampler.sample(10, None, f)
     >>> # In this case, x = y for all samples

@@ -6,10 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 
 from .clustering_algorithm import generate_clustering_models
-from .clustering_visualization import (
-    plot_all_decisions_maps,
-    plot_all_decision_tree,
-)
+from .clustering_visualization import plot_all_decision_tree, plot_all_decisions_maps
 
 __all__ = [
     "generate_clustering_models",

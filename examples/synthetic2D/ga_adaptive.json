@@ -1,11 +1,12 @@
 {
   "EXPERIMENT": {
     "objectives": {
-      "r":{
-        "direction":"minimize",
-        "bound":3 
+      "r": {
+        "direction": "minimize",
+        "bound": 3
       }
-    }
+    },
+    "generate_tree": "C"
   },
   "PARAMETERS": {
     "KERNEL_INPUTS": {
@@ -27,11 +28,18 @@
     "DESIGN_PARAMETERS": {
       "b": {
         "Type": "float",
-        "Values": [1, 5]
+        "Values": [
+          1,
+          5
+        ]
       },
       "c": {
-	      "Type": "Categorical",
-	      "Values": ["one", "two", "three"]
+        "Type": "Categorical",
+        "Values": [
+          "one",
+          "two",
+          "three"
+        ]
       }
     }
   },
@@ -45,7 +53,7 @@
     "sampler_parameters": {
       "n_samples": 100,
       "n_iterations": 10,
-      "bootstrap_ratio": 0.20,
+      "bootstrap_ratio": 0.2,
       "initial_ga_ratio": 0.2,
       "final_ga_ratio": 0.4
     }
@@ -61,7 +69,6 @@
       "boosting": "gbdt",
       "learning_rate": 0.15
     }
-
   },
   "OPTIMIZATION": {
     "sampling": {

@@ -16,5 +16,6 @@ def return_id(sample):
 
 global_var = 42
 
-def test_can_init_global(_):
+
+def test_can_init_global(sample):
     return {"r": global_var}

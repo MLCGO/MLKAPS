@@ -6,10 +6,10 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 
 from mlkaps.modeling.encoding import encode_dataframe
-from mlkaps.modeling.model_wrapper import ModelWrapper
 from mlkaps.modeling.lightgbm_wrapper import LightGBMWrapper, OptunaTunerLightgbm
+from mlkaps.modeling.model_wrapper import ModelWrapper
+from mlkaps.modeling.modeling import SurrogateFactory, build_main_surrogates
 from mlkaps.modeling.xgboost_wrapper import XGBoostModelWrapper
-from mlkaps.modeling.modeling import build_main_surrogates, SurrogateFactory
 
 __all__ = [
     "encode_dataframe",

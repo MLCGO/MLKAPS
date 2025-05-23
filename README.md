@@ -22,7 +22,7 @@ MLKAPS is an open source tool, if you wish to contribute please read the [Contri
     - [Launching an experiment](#launching-an-experiment)
   - [Citing this work](#citing-this-work)
   - [Licence and copyright](#licence-and-copyright)
- 
+
 ## Description
 
 Configuring applications to achieve maximum performance, accuracy, or minimum energy consumption is a difficult task. It is often achieved via hand-tuning, which is subject to bias and blind-spots. MLKAPS attempts to solve this issue using auto-tuning techniques that leverages Machine Learning (ML).
@@ -83,14 +83,12 @@ Furture work is considering python interface to handle experiement definition, e
 ### Launching an experiment
 
 When your executable and configuration file are ready, you can run MLKAPS by using:
-
 ```bash
-mlkaps <config.json> 
+mlkaps <config.json>
 ```
 
 **We highly recommend:**
-
-* using `tmux` or `screen` to prevent your experiment stopping if you lose connection to your tuning environment. Full checkpoint resart is being tested and should be release soon. 
+* using `tmux` or `screen` to prevent your experiment stopping if you lose connection to your tuning environment. Full checkpoint resart is being tested and should be release soon.
 * validate your setup by running a simplified version of your kernel/configuration.
 
 ## Citing this work

@@ -5,17 +5,18 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-import pickle
-import pandas as pd
 import logging
-import textwrap
+import pickle
 import pprint
+import textwrap
 from typing import Iterable
 
+import pandas as pd
+
 from mlkaps.configuration import ExperimentConfig
+from mlkaps.modeling.encoding import encode_dataframe
 from mlkaps.modeling.model_wrapper import ModelWrapper
 from mlkaps.modeling.optuna_model_tuner import OptunaModelTuner, OptunaRecorder
-from mlkaps.modeling.encoding import encode_dataframe
 
 
 class ModelingError(Exception):
