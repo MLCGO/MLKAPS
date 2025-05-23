@@ -5,7 +5,7 @@
     "DESIGN_PARAMETERS": {
       "summation": {
         "Type": "Categorical",
-        "Values": [
+        "Set": [
           "1sub",
           "2sublow",
           "2subhigh",
@@ -21,7 +21,7 @@
       },
       "block_size": {
         "Type": "int",
-        "Values": [
+        "Range": [
           8,
           64
         ]

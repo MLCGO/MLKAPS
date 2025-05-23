@@ -11,14 +11,14 @@
     "KERNEL_INPUTS": {
       "y": {
         "Type": "float",
-        "Values": [
+        "Range": [
           -2,
           2
         ]
       },
       "x": {
         "Type": "float",
-        "Values": [
+        "Range": [
           -2,
           2
         ]
@@ -27,14 +27,14 @@
     "DESIGN_PARAMETERS": {
       "b": {
         "Type": "float",
-        "Values": [
+        "Range": [
           1,
           5
         ]
       },
       "c": {
         "Type": "Categorical",
-        "Values": [
+        "Set": [
           "one",
           "two",
           "three"

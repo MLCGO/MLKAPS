@@ -168,6 +168,7 @@ class GAAdaptiveSampler:
                 return samples
             except Exception as exc:
                 # Wrap any exception in a SamplerError
+                print(f"Sampler failed with exception: {exc}")
                 raise SamplerError("GA-Adaptive sampling failed!") from exc
 
     def _lhs_bootstrap(self, n_samples, pbar):

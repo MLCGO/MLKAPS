@@ -8,7 +8,7 @@
     "KERNEL_INPUTS": {
       "vecsize": {
         "Type": "int",
-        "Values": [
+        "Range": [
           256,
           20000
         ]
@@ -17,7 +17,7 @@
     "DESIGN_PARAMETERS": {
       "nthreads": {
         "Type": "int",
-        "Values": [
+        "Range": [
           1,
           "@max_threads"
         ]

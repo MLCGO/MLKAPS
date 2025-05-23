@@ -34,7 +34,7 @@ NOTE: the order of the parameter is important as it must match ordering in kerne
 		"DESIGN_PARAMETERS": {
 		  "algorithm": {
 			"Type": "Categorical",
-			"Values": [
+			"Set": [
 			  "mkl",
 			  "later",
 			  "split",
@@ -45,14 +45,14 @@ NOTE: the order of the parameter is important as it must match ordering in kerne
 		"KERNEL_INPUTS": {
 		  "matrix_size": {
 			"Type": "int",
-			"Values": [
+			"Range": [
 			  31,
 			  200
 			]
 		  },
 		  "nbr_splits": {
 			"Type": "int",
-			"Values": [
+			"Range": [
 			  0,
 			  29
 			]

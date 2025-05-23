@@ -11,6 +11,7 @@ import pathlib
 from deprecated import deprecated
 
 from mlkaps.configuration.compilation_configuration import CompilationConfiguration
+from mlkaps.sampling import ValueRange, ValueSet, ValueSequence
 
 from . import _parser as parser
 
@@ -120,9 +121,14 @@ class ExperimentConfig:
         promote them to features.
 
         The parameters should be passed as a dictionary, where the key is the name of the parameter
-        containing the "Type" subkey, one of "Categorical, "Boolean", "Integer" or "Float",
-        and the "Values" subkey, a list of values for the parameter if it is categorical, or a
-        tuple of (min, max) values if it is an integer or a float.
+        containing a dict, accepting the following subkeys:
+          - "Type": one of "Categorical, "Boolean", "Integer" or "Float"
+          - one and only one of
+            - "Set": An array of values for the parameter
+            - "Sequence": An array with 3 values: start, stop and progression; "Type" must be "float" or "int"
+            - "Range": A tuple of (min, max) values for the parameter; "Type" must be "float" or "int"
+          - "Progression": "arithmetic" or "geometric" defines the type of progression if the parameter is a sequence.
+            Defaults to "arithmetic"
 
         Parameters
         ----------
@@ -135,12 +141,52 @@ class ExperimentConfig:
         # And append their valuer/type to the feature map
         for p, v in parameters_to_promote.items():
             keys["features_type"][p] = v["Type"]
+            allowedTypes = {"Categorical": str, "Boolean": bool, "int": int, "float": float}
+            if v["Type"] not in allowedTypes:
+                raise parser.ParserError(f"Unknown type for parameter {p}: {v['Type']}, must be one of {allowedTypes.keys()}")
+            type = allowedTypes[v["Type"]]
+
             # If the parameter is boolean, deduce the values to False/True
             if keys["features_type"][p] == "Boolean":
-                keys["features_values"][p] = [False, True]
+                keys["features_values"][p] = ValueSet([False, True], type=bool)
+                continue
+
+            allowedCkeys = ["Set", "Range", "Sequence"]
+            nCKeys = len(list(filter(lambda x: x in allowedCkeys, v.keys())))
+            if nCKeys == 0:
+                raise parser.ParserError(f"Parameter {p} requires one of the following keys: {allowedCkeys}")
+            if nCKeys > 1:
+                raise parser.ParserError(f"Parameter {p} keys {allowedCkeys} are mutually exclusive")
+            if "Set" in v:
+                keys["features_values"][p] = ValueSet([False, True], type=type)
+            elif "Sequence" in v:
+                if type not in [float, int]:
+                    raise parser.ParserError(f'Parameter {p}: "Type" of "Sequence" must be "float" or "int"')
+                if len(v["Sequence"]) != 3:
+                    raise parser.ParserError(f'Parameter {p} requires 3 values for "Sequence": [start, stop, progression]')
+                if "Progression" in v:
+                    allowedProgression = ["arithmetic", "geometric"]
+                    progression = v["Progression"]
+                    if progression not in allowedProgression:
+                        raise parser.ParserError(
+                            f"Unknown progression type for parameter {p}:"
+                            " {v['Progression']}, must be one of {allowedProgression}"
+                        )
+                else:
+                    progression = "arithmetic"
+                keys["features_values"][p] = ValueSequence(*v["Sequence"], progression=progression, type=type)
             else:
-                # Else, just copy the user defined values
-                keys["features_values"][p] = v["Values"]
+                assert "Range" in v
+                if len(v["Range"]) != 2:
+                    raise parser.ParserError(f'Parameter {p} requires 2 values for "Range": [min, max]')
+                if type == float:
+                    keys["features_values"][p] = ValueRange(*v["Range"], type=type)
+                elif type == int:
+                    keys["features_values"][p] = ValueSequence(
+                        v["Range"][0], v["Range"][1] + 1, 1, progression="arithmetic", type=type
+                    )
+                else:
+                    raise parser.ParserError(f'Parameter {p}: "Type" of "Range" must be "float" or "int"')
 
     def promote_features_to_design(self, feature_list):
         """
