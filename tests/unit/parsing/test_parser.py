@@ -9,8 +9,9 @@ import json
 import os
 import pathlib
 import unittest
+import pytest
 
-from mlkaps.configuration import ExperimentConfig
+from mlkaps.configuration import ExperimentConfig, _parser
 
 
 def _fetch_dummy_json(json_name):
@@ -50,35 +51,40 @@ class BasicParserTestCase(unittest.TestCase):
         self.assertIsNotNone(config)
 
 
-class ParametersTestCase(unittest.TestCase):
+class TestInvalidConfig:
+    @pytest.mark.parametrize(
+        "configfile",
+        [
+            "parameters/missing_design_parameters.json",
+            "parameters/missing_kernel_inputs.json",
+            "parameters/unknown_parameter_type.json",
+            "parameters/invalid_numerical_parameter_value.json",
+        ],
+    )
+    @pytest.mark.xfail(raises=KeyError, strict=True)
+    def test_keys(self, configfile):
+        res, path = _fetch_dummy_json(configfile)
+        assert res, "Missing dummy json file"
+        ExperimentConfig.from_dict(res, pathlib.Path(path).parent)
 
-    def test_throw_on_missing_design_parameters(self):
-        res, path = _fetch_dummy_json("parameters/missing_design_parameters.json")
-        if res is None:
-            self.skipTest("Missing dummy json file")
-
-        self.assertRaises(Exception, ExperimentConfig.from_dict, res, path)
-
-    def test_throw_on_missing_kernel_inputs(self):
-        res, path = _fetch_dummy_json("parameters/missing_kernel_inputs.json")
-        if res is None:
-            self.skipTest("Missing dummy json file")
-
-        self.assertRaises(Exception, ExperimentConfig.from_dict, res, path)
-
-    def test_throw_on_unknown_parameter_type(self):
-        res, path = _fetch_dummy_json("parameters/unknown_parameter_type.json")
-        if res is None:
-            self.skipTest("Missing dummy json file")
-
-        self.assertRaises(Exception, ExperimentConfig.from_dict, res, path)
-
-    def test_throw_on_invalid_numerical_parameter_value(self):
-        res, path = _fetch_dummy_json("parameters/invalid_numerical_parameter_value.json")
-        if res is None:
-            self.skipTest("Missing dummy json file")
-
-        self.assertRaises(Exception, ExperimentConfig.from_dict, res, path)
+    @pytest.mark.parametrize(
+        "configfile",
+        [
+            "parameters/conflicting_containers.json",
+            "parameters/no_container.json",
+            "parameters/invalid_container.json",
+            "parameters/invalid_sequence_type.json",
+            "parameters/invalid_range_type.json",
+            "parameters/invalid_progression.json",
+            "parameters/invalid_sequence.json",
+            "parameters/invalid_range.json",
+        ],
+    )
+    @pytest.mark.xfail(raises=_parser.ParserError, strict=True)
+    def test_invalid_parameter(self, configfile):
+        res, path = _fetch_dummy_json(configfile)
+        assert res, "Missing dummy json file"
+        ExperimentConfig.from_dict(res, pathlib.Path(path).parent)
 
 
 class SamplingTestCase(unittest.TestCase):

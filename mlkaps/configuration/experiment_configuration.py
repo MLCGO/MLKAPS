@@ -174,7 +174,7 @@ class ExperimentConfig:
                         )
                 else:
                     progression = "arithmetic"
-                keys["features_values"][p] = ValueSequence(*v["Sequence"], progression=progression, type=type)
+                keys["features_values"][p] = ValueSequence(*v["Sequence"], mode=progression, type=type)
             else:
                 assert "Range" in v
                 if len(v["Range"]) != 2:
