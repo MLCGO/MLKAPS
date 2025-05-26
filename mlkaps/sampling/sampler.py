@@ -102,7 +102,7 @@ class ValueSet(ValueContainer):
         if n_samples == 0:
             return None
         if n_samples < 0:
-            n_samples = len(self.values)
+            return self.values.copy()
 
         n = self.get_size()
         return self.map_from_numeric(np.linspace(0, n - 1, n_samples, endpoint=True))

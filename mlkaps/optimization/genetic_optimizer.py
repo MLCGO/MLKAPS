@@ -35,6 +35,7 @@ from mlkaps.modeling.encoding import encode_dataframe
 from mlkaps.sampling.sampler_factory import SamplerFactory
 
 from mlkaps.sampling import RandomSampler
+from mlkaps.sampling.sampler import ValueSet
 from mlkaps.optimization.optimizer_checkpoint import OptimizerCheckpoint
 
 
@@ -209,13 +210,14 @@ class DesignParametersProblem(Problem):
         for name, parameter_type in self.optimization_parameters.items():
             match parameter_type:
                 case "float":
-                    pymoo_var = Real(bounds=feature_values[name])
+                    pymoo_var = Real(bounds=feature_values[name].get_sampling_bounds())
                 case "int":
-                    pymoo_var = Integer(bounds=feature_values[name])
+                    pymoo_var = Integer(bounds=feature_values[name].get_sampling_bounds())
                 case "Boolean":
                     pymoo_var = Binary()
                 case "Categorical":
-                    pymoo_var = Choice(options=feature_values[name])
+                    assert isinstance(feature_values[name], ValueSet)
+                    pymoo_var = Choice(options=feature_values[name].sample_linear_space())
                 case _:
                     raise ValueError(f"Unexpected variable type for '{name}' ('{parameter_type}')")
             mixed_vars[name] = pymoo_var

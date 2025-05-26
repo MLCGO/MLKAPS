@@ -183,7 +183,7 @@ class ExperimentConfig:
                     keys["features_values"][p] = ValueRange(*v["Range"], type=type)
                 elif type == int:
                     keys["features_values"][p] = ValueSequence(
-                        v["Range"][0], v["Range"][1] + 1, 1, progression="arithmetic", type=type
+                        v["Range"][0], v["Range"][1] + 1, 1, mode="arithmetic", type=type
                     )
                 else:
                     raise parser.ParserError(f'Parameter {p}: "Type" of "Range" must be "float" or "int"')
