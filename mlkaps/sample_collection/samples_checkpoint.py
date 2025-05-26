@@ -95,7 +95,7 @@ class SamplesCheckpoint:
                 expected_type = self.parameters_type[name]
                 assert self._compatible_types(
                     sample_type, expected_type
-                ), f"Sample type {sample_type} is not compatible with {expected_type}"
+                ), f"Sample type {sample_type} of parameter {name} is not compatible with {expected_type}"
 
             # check all the elements of each column have the same type
             for column in samples.columns:

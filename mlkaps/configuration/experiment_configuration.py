@@ -158,7 +158,7 @@ class ExperimentConfig:
             if nCKeys > 1:
                 raise parser.ParserError(f"Parameter {p} keys {allowedCkeys} are mutually exclusive")
             if "Set" in v:
-                keys["features_values"][p] = ValueSet([False, True], type=type)
+                keys["features_values"][p] = ValueSet(v["Set"], type=type)
             elif "Sequence" in v:
                 if type not in [float, int]:
                     raise parser.ParserError(f'Parameter {p}: "Type" of "Sequence" must be "float" or "int"')
