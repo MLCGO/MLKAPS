@@ -70,7 +70,7 @@ class TestTimeoutRecovery:
         doSrun, target_machine = remote_recovery_data
 
         # note this dataframe has to match what is in dummy_recovery_kernel.py
-        expected_results = pd.DataFrame(
+        samples = pd.DataFrame(
             {
                 "Y0": [3, 1, 3, 4, 3, 2, 1, 1, 3, 4, 4, 3, 2, 3, 2, 2, 2, 2, 3, 2],
                 "m": [
@@ -187,31 +187,43 @@ class TestTimeoutRecovery:
                 ],
                 "XY_s": [43, 68, 98, 48, 58, 33, 38, 18, 8, 88, 53, 63, 93, 73, 3, 13, 28, 83, 78, 23],
                 "X0": [1, 4, 2, 1, 3, 2, 2, 2, 4, 3, 4, 3, 3, 2, 2, 3, 3, 1, 3, 2],
-                "performance": [
-                    0.001414,
-                    0.008677,
-                    0.000959,
-                    0.001800,
-                    0.027301,
-                    0.008646,
-                    0.000573,
-                    0.000461,
-                    0.005484,
-                    0.007221,
-                    0.002776,
-                    0.000213,
-                    0.008382,
-                    0.001397,
-                    0.004046,
-                    0.016034,
-                    0.004958,
-                    0.009156,
-                    0.000233,
-                    0.001868,
-                ],
             }
         )
 
+        # note the expected order is the parameters in alphabetical order,
+        # followed by objectives in alphabetical order
+        expected_results = pd.concat(
+            [
+                samples.reindex(sorted(samples.columns), axis=1),
+                pd.DataFrame(
+                    {
+                        "performance": [
+                            0.001414,
+                            0.008677,
+                            0.000959,
+                            0.001800,
+                            0.027301,
+                            0.008646,
+                            0.000573,
+                            0.000461,
+                            0.005484,
+                            0.007221,
+                            0.002776,
+                            0.000213,
+                            0.008382,
+                            0.001397,
+                            0.004046,
+                            0.016034,
+                            0.004958,
+                            0.009156,
+                            0.000233,
+                            0.001868,
+                        ]
+                    }
+                ),
+            ],
+            axis=1,
+        )
         samples_path = get_samples_path()
         if samples_path.exists() and samples_path.is_file():
             samples_path.unlink()  # Remove the file
