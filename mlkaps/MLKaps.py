@@ -50,6 +50,7 @@ def run_clustering(args, experiment_config, optim_results):
     # Properly re-implement it
     clustered_models = generate_clustering_models(experiment_config, optim_results)
 
+    # from mlkaps.clustering import plot_all_decision_tree, plot_all_decisions_maps
     # plot_all_decisions_maps(experiment_config, optim_results, clustered_models)
     # plot_all_decision_tree(experiment_config, clustered_models)
 
