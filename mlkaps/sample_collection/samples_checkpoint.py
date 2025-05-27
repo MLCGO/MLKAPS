@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 
 import pathlib
+import os
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import logging
@@ -160,4 +161,9 @@ class SamplesCheckpoint:
             # this is the first write to the .csv file
             batch.to_csv(self.output_path, mode="a", header=True, index=False)
 
+        # Ensure data is flushed and written to disk
+        # if this proves to be expensive, we can do it every 10th batch.
+        with open(self.output_path, "a") as f:
+             f.flush()
+             os.fsync(f.fileno())
         return batch
