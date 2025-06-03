@@ -111,6 +111,7 @@ def write_decision_tree(configuration: ExperimentConfig, decision_tree, feature,
     Use given code generator to generate the code.
     """
     feature_is_categorical = configuration.parameters_type[feature] == "Categorical"
+    feature_container = configuration.feature_values[feature]
 
     # Generate a function and recursively write the decision tree
     file.write(
@@ -156,9 +157,7 @@ def write_decision_tree(configuration: ExperimentConfig, decision_tree, feature,
             if classes is not None:
                 feature_value = f"{classes[np.argmax(value[node])]}"
             else:
-                feature_value = feature_value[0][0]
-            if feature_is_categorical:
-                feature_value = f'"{feature_value}"'
+                feature_value = feature_container.map_from_numeric([feature_value[0][0]])[0]
             output.write(generator.genReturn(offset, feature_value))
 
         return output

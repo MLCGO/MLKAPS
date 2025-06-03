@@ -207,7 +207,7 @@ class ValueSet(ValueContainer):
         :type indices: np.ndarray or list
         :rtype: np.ndarray
         """
-        indices = np.asarray(indices).round().astype("int")
+        indices = np.asarray(indices, dtype="float").round().astype(np.intp)
         # creating the full sequence might not be optimal for sequences; can be improved if needed
         return self.values[indices]
 
@@ -469,7 +469,7 @@ class ValueRange(ValueContainer):
         :type data: np.ndarray or list
         :rtype: np.ndarray
         """
-        return data.astype(self.get_dtype())
+        return np.asarray(data, dtype=self.get_dtype())
 
 
 def _mask_variables(variables: dict, mask: list) -> dict:
