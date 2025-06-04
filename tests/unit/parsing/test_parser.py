@@ -76,7 +76,6 @@ class TestInvalidConfig:
             "parameters/invalid_sequence_type.json",
             "parameters/invalid_range_type.json",
             "parameters/invalid_progression.json",
-            "parameters/invalid_sequence.json",
             "parameters/invalid_range.json",
         ],
     )

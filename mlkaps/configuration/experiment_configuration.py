@@ -121,14 +121,20 @@ class ExperimentConfig:
         promote them to features.
 
         The parameters should be passed as a dictionary, where the key is the name of the parameter
-        containing a dict, accepting the following subkeys:
-          - "Type": one of "Categorical, "Boolean", "Integer" or "Float"
-          - one and only one of
-            - "Set": An array of values for the parameter
-            - "Sequence": An array with 3 values: start, stop and progression; "Type" must be "float" or "int"
-            - "Range": A tuple of (min, max) values for the parameter; "Type" must be "float" or "int"
-          - "Progression": "arithmetic" or "geometric" defines the type of progression if the parameter is a sequence.
-            Defaults to "arithmetic"
+        containing a dict, accepting the following three subkeys:
+            - "Type": one of "Categorical, "Boolean", "Integer" or "Float"
+                - "Boolean" requires no other key
+                - "Categorical" requires key "Set"
+                - "int" and "float" require one of "Set" or "Range"
+            - "Set": Specifies an array of values for the parameter
+            - "Range": Specifies a range of values defined by a tuple of
+               [lower bound, upper bound, step/factor, progression type]
+                - lower and upper bounds are required
+                - step/factor and progression type are optional
+                - upper bound is interpreted as the last element in the range if no step/factor is given (inclusive),
+                  otherwise as one after last element (exclusive)
+                - progression type can be "arithmetic" (step) or "geometric" (factor) and defaults to "arithmetic"
+                - requires "int" and "float" "Type"
 
         Parameters
         ----------
@@ -151,7 +157,7 @@ class ExperimentConfig:
                 keys["features_values"][p] = ValueSet([False, True], type=bool)
                 continue
 
-            allowedCkeys = ["Set", "Range", "Sequence"]
+            allowedCkeys = ["Set", "Range"]
             nCKeys = len(list(filter(lambda x: x in allowedCkeys, v.keys())))
             if nCKeys == 0:
                 raise parser.ParserError(f"Parameter {p} requires one of the following keys: {allowedCkeys}")
@@ -159,34 +165,34 @@ class ExperimentConfig:
                 raise parser.ParserError(f"Parameter {p} keys {allowedCkeys} are mutually exclusive")
             if "Set" in v:
                 keys["features_values"][p] = ValueSet(v["Set"], type=type)
-            elif "Sequence" in v:
-                if type not in [float, int]:
-                    raise parser.ParserError(f'Parameter {p}: "Type" of "Sequence" must be "float" or "int"')
-                if len(v["Sequence"]) != 3:
-                    raise parser.ParserError(f'Parameter {p} requires 3 values for "Sequence": [start, stop, progression]')
-                if "Progression" in v:
-                    allowedProgression = ["arithmetic", "geometric"]
-                    progression = v["Progression"]
-                    if progression not in allowedProgression:
-                        raise parser.ParserError(
-                            f"Unknown progression type for parameter {p}:"
-                            " {v['Progression']}, must be one of {allowedProgression}"
-                        )
-                else:
-                    progression = "arithmetic"
-                keys["features_values"][p] = ValueSequence(*v["Sequence"], mode=progression, type=type)
             else:
                 assert "Range" in v
-                if len(v["Range"]) != 2:
-                    raise parser.ParserError(f'Parameter {p} requires 2 values for "Range": [min, max]')
-                if type == float:
-                    keys["features_values"][p] = ValueRange(*v["Range"], type=type)
-                elif type == int:
-                    keys["features_values"][p] = ValueSequence(
-                        v["Range"][0], v["Range"][1] + 1, 1, mode="arithmetic", type=type
-                    )
-                else:
+                nVals = len(v["Range"])
+                if type not in [float, int]:
                     raise parser.ParserError(f'Parameter {p}: "Type" of "Range" must be "float" or "int"')
+                if nVals < 2:
+                    raise parser.ParserError(f'Parameter {p}: "Range" requires at least lower and upper bounds')
+                if nVals > 4:
+                    raise parser.ParserError(
+                        f'Parameter {p}: "Range" requires at most lower bound, upper bound, step/factor and progression type'
+                    )
+                if any(not isinstance(x, (int, float)) or isinstance(x, bool) for x in v["Range"][:3]):
+                    raise parser.ParserError(f'Parameter {p}: "Range" bounds and step/factor must be numbers')
+
+                if nVals == 2 and type == float:
+                    keys["features_values"][p] = ValueRange(*v["Range"], type=type)
+                    continue
+
+                stepfactor = 1 if nVals < 3 else v["Range"][2]
+                allowedProgression = ["arithmetic", "geometric"]
+                progression = allowedProgression[0] if nVals < 4 else v["Range"][3]
+                if progression not in allowedProgression:
+                    raise parser.ParserError(
+                        f"Unknown progression type for parameter {p}: {progression}, must be one of {allowedProgression}"
+                    )
+                keys["features_values"][p] = ValueSequence(
+                    v["Range"][0], v["Range"][1], stepfactor, mode=progression, type=type
+                )
 
     def promote_features_to_design(self, feature_list):
         """

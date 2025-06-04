@@ -8,7 +8,7 @@
     "KERNEL_INPUTS": {
       "y": {
         "Type": "Categorical",
-        "Sequence": [
+        "Range": [
           1,
           4,
           1

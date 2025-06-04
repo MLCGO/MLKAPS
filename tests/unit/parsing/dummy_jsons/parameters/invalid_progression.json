@@ -8,12 +8,12 @@
     "KERNEL_INPUTS": {
       "y": {
         "Type": "int",
-        "Sequence": [
+        "Range": [
           0,
           10,
-          2
-        ],
-        "Progression": "linear"
+          2,
+          "linear"
+        ]
       }
     },
     "DESIGN_PARAMETERS": {

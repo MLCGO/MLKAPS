@@ -11,9 +11,8 @@
         "Range": [
           0,
           10,
-          4
-        ],
-        "Progression": "linear"
+          "arithmetic"
+        ]
       }
     },
     "DESIGN_PARAMETERS": {

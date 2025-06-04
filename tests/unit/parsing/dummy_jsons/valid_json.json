@@ -34,7 +34,7 @@
       },
       "block_size2": {
         "Type": "int",
-        "Sequence": [
+        "Range": [
           8,
           64,
           2
@@ -42,21 +42,21 @@
       },
       "whatever": {
         "Type": "float",
-        "Sequence": [
+        "Range": [
           2,
           64.4,
-          2.1
-        ],
-        "Progression": "geometric"
+          2.1,
+          "geometric"
+        ]
       },
       "whatever2": {
         "Type": "int",
-        "Sequence": [
+        "Range": [
           2,
           64,
-          2
-        ],
-        "Progression": "arithmetic"
+          2,
+          "arithmetic"
+        ]
       }
     },
     "KERNEL_INPUTS": {
