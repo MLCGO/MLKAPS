@@ -35,7 +35,6 @@ To run the test, simply execute the following command:
 
 ```sh
 mlkaps ga_adaptive.json
->>>>>>> external/main
 ```
 
 This command will use the `ga-adaptive.json` configuration file to perform the test.
