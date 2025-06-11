@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-linux-ubuntu:
-    runs-on: tpi-ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
