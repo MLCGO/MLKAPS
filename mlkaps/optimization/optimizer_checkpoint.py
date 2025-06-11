@@ -70,7 +70,7 @@ class OptimizerCheckpoint:
             # if we have more saved results than requested optimization points, we probably have a user error.
             saved_len = len(saved_results)
             optim_len = len(optimization_points)
-            assert saved_len <= optim_len, "We have more results in optim.csv than requested optimizaiton points"
+            assert saved_len <= optim_len, "We have more results in optim.csv than requested optimization points"
 
             # Check that the names in the optimization points are in the saved results.
             saved_names = list(saved_results)
