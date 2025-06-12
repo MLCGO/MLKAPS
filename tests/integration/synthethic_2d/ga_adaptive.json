@@ -6,7 +6,7 @@
         "bound": 3
       }
     },
-    "generate_tree": "Python"
+    "tree_language": "Python"
   },
   "PARAMETERS": {
     "KERNEL_INPUTS": {
