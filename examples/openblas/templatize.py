@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-import pdb
 import psutil
 
 if len(sys.argv) != 3:

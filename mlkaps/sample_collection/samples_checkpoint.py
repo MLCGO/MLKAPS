@@ -164,6 +164,6 @@ class SamplesCheckpoint:
         # Ensure data is flushed and written to disk
         # if this proves to be expensive, we can do it every 10th batch.
         with open(self.output_path, "a") as f:
-             f.flush()
-             os.fsync(f.fileno())
+            f.flush()
+            os.fsync(f.fileno())
         return batch
