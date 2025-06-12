@@ -89,9 +89,6 @@ def write_decision_trees(configuration: ExperimentConfig, decision_trees: dict):
     Write the decision trees to a file in the specified language (C or Python).
     Generate one function per decision tree, each accepting kernel inputs as arguments.
     """
-    if not configuration.tree_language:
-        print("No tree language specified in the configuration. No trees will be generated.")
-        return
 
     if configuration.tree_language == "Python":
         generator = PythonGenerator()
