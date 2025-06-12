@@ -9,8 +9,8 @@ import json
 import os
 import unittest
 
-from mlkaps.configuration.compilation_configuration import register_predefined_flag_set
 from mlkaps.configuration import ExperimentConfig
+from mlkaps.configuration.compilation_configuration import register_predefined_flag_set
 
 
 def _fetch_dummy_json(json_name):

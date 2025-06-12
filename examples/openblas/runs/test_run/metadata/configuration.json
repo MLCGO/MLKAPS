@@ -1,0 +1,81 @@
+{
+  "EXPERIMENT": {
+    "objectives": [
+      "performance"
+    ]
+  },
+  "PARAMETERS": {
+    "KERNEL_INPUTS": {
+      "vecsize": {
+        "Type": "int",
+        "Values": [
+          256,
+          20000
+        ]
+      }
+    },
+    "DESIGN_PARAMETERS": {
+      "nthreads": {
+        "Type": "int",
+        "Values": [
+          1,
+          12
+        ]
+      }
+    }
+  },
+  "SAMPLING": {
+    "runner": "executable",
+    "runner_parameters": {
+      "kernel": "./openblas_kernel/build/openblas_kernel",
+      "parameters_order": [
+        "vecsize",
+        "nthreads"
+      ]
+    },
+    "sampler": "ga_adaptive",
+    "sampler_parameters": {
+      "n_samples": 1000,
+      "n_iterations": 20,
+      "bootstrap_ratio": 0.15,
+      "initial_ga_ratio": 0.2,
+      "final_ga_ratio": 0.8
+    }
+  },
+  "MODELING": {
+    "modeling_method": "lightgbm",
+    "parameters": {
+      "objective": "mae",
+      "n_jobs": -1,
+      "verbose": -1,
+      "n_estimators": 400,
+      "min_data_in_leaf": 20,
+      "boosting": "gbdt",
+      "learning_rate": 0.01
+    }
+  },
+  "OPTIMIZATION": {
+    "sampling": {
+      "sampler": {
+        "sampling_method": "grid"
+      },
+      "sample_count": {
+        "vecsize": 1024
+      }
+    },
+    "optimization_method": "genetic",
+    "optimization_parameters": {
+      "evolution": {
+        "pop_size": 80
+      },
+      "termination": {
+        "time": "00:00:15"
+      },
+      "selection_method": "mono",
+      "early_stopping": true
+    }
+  },
+  "CLUSTERING": {
+    "clustering_method": "decision_tree"
+  }
+}

@@ -9,6 +9,7 @@ Grid sampling using a samples count per dimensions
 
 import numpy as np
 import pandas as pd
+
 from .static_sampler import StaticSampler
 
 

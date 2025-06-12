@@ -106,7 +106,7 @@ def map_float_to_variables(data: pd.DataFrame, variables_types: dict, variables_
 
             # Then converts all those integers to their corresponding
             # values
-            data[variable] = np.vectorize(feature_map.get)(data[variable])
+            data[variable] = data[variable].map(feature_map)
 
         elif var_type == "int":
             # Round and use the correct type

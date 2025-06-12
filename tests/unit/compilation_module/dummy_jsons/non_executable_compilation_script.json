@@ -1,137 +1,137 @@
 {
-    "verbose": true,
-    "debug": false,
-    "EXPERIMENT": {
-      "objectives": [
-        "accuracy",
-        "performance"
-      ]
+  "verbose": true,
+  "debug": false,
+  "EXPERIMENT": {
+    "objectives": [
+      "accuracy",
+      "performance"
+    ]
+  },
+  "PARAMETERS": {
+    "COMPILATION": {
+      "predefined_flag_sets": [
+        "ffast-math"
+      ],
+      "compilation_script": "non_executable_compilation_script.json"
     },
-    "PARAMETERS": {
-      "COMPILATION": {
-        "predefined_flag_sets": [
-          "ffast-math"
-        ],
-        "compilation_script": "non_executable_compilation_script.json"
+    "DESIGN_PARAMETERS": {
+      "summation": {
+        "Type": "Categorical",
+        "Values": [
+          "1sub",
+          "2sublow",
+          "2subhigh",
+          "3sub"
+        ]
       },
-      "DESIGN_PARAMETERS": {
-        "summation": {
-          "Type": "Categorical",
-          "Values": [
-            "1sub",
-            "2sublow",
-            "2subhigh",
-            "3sub"
-          ]
-        },
-            "alternate": {
-                "Type": "Boolean",
-                "comment_Values": [
-                    false,
-                    true
-                ]
-            },
-            "block_size": {
-                "Type": "int",
-                "Values": [
-                    8,
-                    64
-                ]
-            }
-        },
-        "KERNEL_INPUTS": {
-            "vec_size": {
-                "Type": "int",
-                "Values": [
-                    128,
-                    32768
-                ]
-            },
-            "cond": {
-                "Type": "float",
-                "Values": [
-                    1,
-                    100000000
-                ]
-            }
-        }
+      "alternate": {
+        "Type": "Boolean",
+        "comment_Values": [
+          false,
+          true
+        ]
+      },
+      "block_size": {
+        "Type": "int",
+        "Values": [
+          8,
+          64
+        ]
+      }
     },
-    "SAMPLING": {
-        "sampling_verbose": true,
-        "sampling_debug": false,
-        "scripts": {
-          "executable": ""
-        },
-        "exec_arguments_order": [
-            "summation",
-            "alternate",
-            "block_size",
-            "cond",
-            "vec_size"
-        ],
-        "samples_count": 10,
-        "sampling_method": "random",
-        "method_parameters": {
-            "num_samples": 120
-        },
-        "output_path": "acc_perf.csv"
-    },
-    "DATA_PREPROCESSING": {
-        "data_preprocessing_verbose": true,
-        "data_preprocessing_debug": false,
-        "transforms": {
-            "accuracy": "apply_log",
-            "performance": ""
-        }
-    },
-    "MODELING": {
-        "modeling_verbose": true,
-        "modeling_debug": false,
-        "modeling_method": "xgboost",
-        "model_parameters": {
-            "max_depth": 7,
-            "n_estimators": 100
-        }
-    },
-    "OPTIMIZATION": {
-        "optimization_verbose": true,
-        "optimization_debug": false,
-        "sampling_method": "grid",
-        "sampling_parameters": {
-            "vec_size": {
-                "sample_count": 20,
-                "scale": "lin"
-            },
-            "cond": {
-                "sample_count": 20,
-                "scale": "lin"
-            }
-        },
-        "optimization_method": "genetic",
-        "optimization_parameters": {
-            "evolution": {
-                "pop_size": 40,
-                "n_offsprings": 20
-            },
-            "termination": {
-                "time": "00:00:01"
-            },
-            "selection_method": "normalized_selection",
-            "selection_parameters": {
-                "coefficients": {
-                    "accuracy": 1,
-                    "performance": 1
-                }
-            }
-        }
-    },
-    "CLUSTERING": {
-        "clustering_verbose": true,
-        "clustering_debug": false,
-        "clustering_method": "decision_tree",
-        "clustering_parameters": {
-            "max_depth": 5,
-            "random_state": 0
-        }
+    "KERNEL_INPUTS": {
+      "vec_size": {
+        "Type": "int",
+        "Values": [
+          128,
+          32768
+        ]
+      },
+      "cond": {
+        "Type": "float",
+        "Values": [
+          1,
+          100000000
+        ]
+      }
     }
+  },
+  "SAMPLING": {
+    "sampling_verbose": true,
+    "sampling_debug": false,
+    "scripts": {
+      "executable": ""
+    },
+    "exec_arguments_order": [
+      "summation",
+      "alternate",
+      "block_size",
+      "cond",
+      "vec_size"
+    ],
+    "samples_count": 10,
+    "sampling_method": "random",
+    "method_parameters": {
+      "num_samples": 120
+    },
+    "output_path": "acc_perf.csv"
+  },
+  "DATA_PREPROCESSING": {
+    "data_preprocessing_verbose": true,
+    "data_preprocessing_debug": false,
+    "transforms": {
+      "accuracy": "apply_log",
+      "performance": ""
+    }
+  },
+  "MODELING": {
+    "modeling_verbose": true,
+    "modeling_debug": false,
+    "modeling_method": "xgboost",
+    "model_parameters": {
+      "max_depth": 7,
+      "n_estimators": 100
+    }
+  },
+  "OPTIMIZATION": {
+    "optimization_verbose": true,
+    "optimization_debug": false,
+    "sampling_method": "grid",
+    "sampling_parameters": {
+      "vec_size": {
+        "sample_count": 20,
+        "scale": "lin"
+      },
+      "cond": {
+        "sample_count": 20,
+        "scale": "lin"
+      }
+    },
+    "optimization_method": "genetic",
+    "optimization_parameters": {
+      "evolution": {
+        "pop_size": 40,
+        "n_offsprings": 20
+      },
+      "termination": {
+        "time": "00:00:01"
+      },
+      "selection_method": "normalized_selection",
+      "selection_parameters": {
+        "coefficients": {
+          "accuracy": 1,
+          "performance": 1
+        }
+      }
+    }
+  },
+  "CLUSTERING": {
+    "clustering_verbose": true,
+    "clustering_debug": false,
+    "clustering_method": "decision_tree",
+    "clustering_parameters": {
+      "max_depth": 5,
+      "random_state": 0
+    }
+  }
 }

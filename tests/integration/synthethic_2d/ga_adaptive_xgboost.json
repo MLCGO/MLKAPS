@@ -24,11 +24,18 @@
     "DESIGN_PARAMETERS": {
       "b": {
         "Type": "float",
-        "Values": [1, 5]
+        "Values": [
+          1,
+          5
+        ]
       },
       "c": {
-	      "Type": "Categorical",
-	      "Values": ["one", "two", "three"]
+        "Type": "Categorical",
+        "Values": [
+          "one",
+          "two",
+          "three"
+        ]
       }
     }
   },
@@ -40,14 +47,14 @@
         "x",
         "y",
         "b",
-	"c"
+        "c"
       ]
     },
     "sampler": "ga_adaptive",
     "sampler_parameters": {
       "n_samples": 100,
       "n_iterations": 10,
-      "bootstrap_ratio": 0.20,
+      "bootstrap_ratio": 0.2,
       "initial_ga_ratio": 0.2,
       "final_ga_ratio": 0.4
     }
@@ -56,12 +63,10 @@
     "modeling_method": "xgboost",
     "parameters": {
       "n_jobs": -1,
-      "verbose": -1,
       "n_estimators": 20,
       "max_depth": 10,
-      "max_leaves":16
+      "max_leaves": 16
     }
-
   },
   "OPTIMIZATION": {
     "sampling": {

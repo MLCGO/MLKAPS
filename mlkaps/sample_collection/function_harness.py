@@ -5,15 +5,16 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-import pathlib
-from typing import Callable
 import importlib
-from collections import namedtuple
 import multiprocessing
-from .common import KernelSamplingError
-import re
 import os
+import pathlib
 import pickle
+import re
+from collections import namedtuple
+from typing import Callable
+
+from .common import KernelSamplingError
 
 
 def is_pickleable(obj):

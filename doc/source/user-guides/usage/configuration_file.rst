@@ -173,5 +173,4 @@ It also includes a sampler that is used to generate the input configurations tha
 The clustering section defines which method to use for the clustering algorithm, as well as its parameters.
 
 When the goal is to generate decision tree code one must use the decision tree algorithm. For decision tree the `max_depth` parameters is to be set to a value high enough to ensure that the tree captures the whole optimization space, but small
-enough that it doesn't impedes the performance of the kernel. 
-
+enough that it doesn't impedes the performance of the kernel.

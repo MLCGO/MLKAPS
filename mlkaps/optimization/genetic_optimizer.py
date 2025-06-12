@@ -13,6 +13,7 @@ import os
 import logging
 import time
 
+
 import pymoo.core.result
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.core.mixed import (
@@ -34,6 +35,7 @@ from mlkaps.modeling.encoding import encode_dataframe
 from mlkaps.sampling.sampler_factory import SamplerFactory
 
 from mlkaps.sampling import RandomSampler
+from mlkaps.optimization.optimizer_checkpoint import OptimizerCheckpoint
 
 
 class GeneticOptimizerConfig:
@@ -575,7 +577,9 @@ class GeneticOptimizer(object):
     find the local optimal design parameters, gathered as a dataframe.
     """
 
-    def __init__(self, configuration: GeneticOptimizerConfig, surrogate_models: dict):
+    def __init__(
+        self, configuration: GeneticOptimizerConfig, surrogate_models: dict, optimizer_checkpoint: OptimizerCheckpoint
+    ):
         """
         Construct a new genetic optimizer based on the passed global
         configuration
@@ -596,6 +600,9 @@ class GeneticOptimizer(object):
         self.surrogate_models = surrogate_models
 
         self.sampler = configuration.sampler
+
+        self.output_path = self.exp_configuration.output_directory / "optim.csv"
+        self.optimizer_checkpoint = optimizer_checkpoint
 
     def _make_optimization_method(self):
         """
@@ -649,18 +656,28 @@ class GeneticOptimizer(object):
             nb_samples).
         """
 
-        results = []
+        # if we have saved results, load them and reduce the number of optimization points to process.
+        results = self.optimizer_checkpoint.maybe_load_results(optimization_points)
+        if results is not None:
+            optimization_points = optimization_points.tail(len(optimization_points) - len(results))
+        else:
+            results = pd.DataFrame()
 
-        # Run the optimization method on every points
+        # Run the optimization method on every point
         for _, user_inputs in tqdm(
             optimization_points.iterrows(),
             total=len(optimization_points),
             desc="Running optimization phase",
         ):
             best_config, _ = self._optimize_point(optimization_method, user_inputs)
-            results.append(best_config)
+            # results.append(best_config)
+            best_config = pd.DataFrame([best_config])
+            best_config = encode_dataframe(self.exp_configuration.parameters_type, best_config)
 
-        results = pd.DataFrame(results)
+            # log best_config to the checkpoint. Should we change here to process a batch, of configs?
+            best_config = self.optimizer_checkpoint.save(best_config)
+            results = pd.concat([results, best_config], ignore_index=True)
+
         return results
 
     def _optimize(self):
@@ -671,14 +688,10 @@ class GeneticOptimizer(object):
         # Build the optimization method
         optimization_method = self._make_optimization_method()
 
-        # Run the optimization method on every points
+        # Run the optimization method on every point
         results = self._optimize_all_samples(optimization_method, samples)
 
         return encode_dataframe(self.exp_configuration.parameters_type, results)
-
-    def _save_results(self, results):
-        output_path = self.exp_configuration.output_directory / "optim.csv"
-        results.to_csv(output_path, index=False)
 
     def run(self):
         """
@@ -693,6 +706,8 @@ class GeneticOptimizer(object):
         """
 
         results = self._optimize()
-        self._save_results(results)
 
+        # test the checkpoint is correct
+        saved_results = pd.read_csv(self.output_path)
+        self.optimizer_checkpoint.consistency_check(saved_results)
         return results

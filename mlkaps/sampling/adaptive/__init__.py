@@ -12,9 +12,9 @@ from .multilevel_hvs import MultilevelHVS
 from .orchestrator import (
     AdaptiveSamplingOrchestrator,
     ErrorConvergenceStoppingCriterion,
-    TimeStoppingCriterion,
     MaxNSampleStoppingCriterion,
     StoppingCriterionFactory,
+    TimeStoppingCriterion,
 )
 from .adaptive_sampler import AdaptiveSampler
 from .ga_adaptive import GAAdaptiveSampler

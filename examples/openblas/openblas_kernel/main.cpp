@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         double delta = chrono::duration<double>(end - begin).count();
         total += delta;
         nrepet++;
-        
+
         // We want atleast 1s of total time to get a good average for small times
         // and atleast nrepet repetitions for large times
         if (total > 1.0 && nrepet >= nrepetitions) {

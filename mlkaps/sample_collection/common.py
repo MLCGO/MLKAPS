@@ -10,5 +10,3 @@ class KernelSamplingError(Exception):
     """
     Helper class to raise exceptions when an error occurs during kernel sampling.
     """
-
-    pass

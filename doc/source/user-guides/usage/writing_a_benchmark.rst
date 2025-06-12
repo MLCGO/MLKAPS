@@ -20,7 +20,7 @@ For example, add timers around the kernel if you want to study its performance.
 Note that objectives are considered to be floats.
 
 
-**MLKAPS considers that the smaller the objective, the better.** To maximize an objective one can negate or take the inverse. 
+**MLKAPS considers that the smaller the objective, the better.** To maximize an objective one can negate or take the inverse.
 
 Printing the objectives
 -----------------------
@@ -44,4 +44,3 @@ This will allow MLKAPS to better explore the search space.
 
 
 Another example would be to normalize the metrics by the size of the input, if it is one of the parameters of your kernel.
-

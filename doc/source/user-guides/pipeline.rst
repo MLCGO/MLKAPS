@@ -12,7 +12,7 @@ The pipeline is composed of the following mandatory modules:
 
 - :ref:`Modeling`, where surrogate models are created from the sampling results.
 
-- :ref:`Optimization`, where the best design parameters for the kernel are found. This is done on a per-input basis. Depending on the algorithm, buget per optimization point, and number of point this step can be costly. However using current method all point are independent and can be run in different process (nor managed by MLKAPS yet) and it can be run offline, i.e. not on the machine required for the sampling phase. 
+- :ref:`Optimization`, where the best design parameters for the kernel are found. This is done on a per-input basis. Depending on the algorithm, buget per optimization point, and number of point this step can be costly. However using current method all point are independent and can be run in different process (nor managed by MLKAPS yet) and it can be run offline, i.e. not on the machine required for the sampling phase.
 
 - :ref:`Clustering`, where the optimization results are combined to create a decision tree able to output the best parameters for any input configuration. This is a very inexpensive step.
 

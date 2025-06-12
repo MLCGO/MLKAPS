@@ -8,11 +8,13 @@ SPDX-License-Identifier: BSD-3-Clause
 import time
 from collections.abc import Callable
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
 from .adaptive_sampler import AdaptiveSampler
+from mlkaps.sample_collection.samples_checkpoint import SamplesCheckpoint
 
 
 class StoppingCriterion:
@@ -518,7 +520,7 @@ class AdaptiveSamplingOrchestrator:
     >>> sampler = HVSampler({"a": "int", "b": "int"}, features)
     >>> f = lambda df: pd.concat([df, df["a"] + df["b"]], axis=1)
     >>> stopping_criteria = [MaxNSampleStoppingCriterion(200)]
-    >>> orchestrator = AdaptiveSamplingOrchestrator(features, f, sampler, None, stopping_criteria)
+    >>> orchestrator = AdaptiveSamplingOrchestrator(features, f, sampler, None, None, stopping_criteria)
     >>> # Output a dataframe containing all the samples
     >>> orchestrator.run() # doctest: +ELLIPSIS
         a  b  0
@@ -533,6 +535,7 @@ class AdaptiveSamplingOrchestrator:
         execution_function: Callable,
         adaptive_sampler: AdaptiveSampler,
         output_directory: Path | str | None,
+        samples_checkpoint: SamplesCheckpoint | None,
         stopping_criteria: list[StoppingCriterion] = None,
         error_evaluator: Callable[[pd.DataFrame, list, list], pd.DataFrame] = default_error_evaluator,
         n_samples_per_iteration: int = 100,
@@ -556,6 +559,10 @@ class AdaptiveSamplingOrchestrator:
         output_directory
             The directory where the adaptive sampling data will be saved
             If not set or None, the data will not be saved
+
+        output_path
+             The file where the samples are written as they are run.  If this file exists at the
+             start of ML-KAPS, the samples in the file are used as a restart.
 
         stopping_criteria
             A list of stopping criterion to use for stopping the adaptive sampling process
@@ -581,6 +588,8 @@ class AdaptiveSamplingOrchestrator:
             self.output_directory = None
         else:
             self.output_directory = Path(output_directory)
+
+        self.samples_checkpoint = samples_checkpoint
 
         self.criteria = stopping_criteria
         if self.criteria is None or len(self.criteria) == 0:
@@ -646,7 +655,18 @@ class AdaptiveSamplingOrchestrator:
         """
 
         done = False
-        dataset = None
+        if self.samples_checkpoint is not None:
+            dataset = self.samples_checkpoint.maybe_load_samples()
+        else:
+            dataset = None
+
+        # if we found a dataset of samples in samples.csv, check if we
+        # need to sample any more.
+        # ** note if stopping criterion is time based, we will sample more **
+        if dataset is not None:
+            if self._find_n_samples_next_iteration(dataset) == 0:
+                return dataset
+
         self.objectives = None
 
         if self.n_samples_per_iteration == 0:

@@ -8,7 +8,9 @@ Definition for the base class of all adaptive samplers
 """
 
 from collections.abc import Callable
+
 import pandas as pd
+
 from ..sampler import Sampler
 
 

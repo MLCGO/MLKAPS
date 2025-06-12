@@ -5,14 +5,16 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-import numpy as np
-import pandas as pd
 import pathlib
-from tqdm import tqdm
+from typing import Callable, Generator, Iterable
+
+import numpy as np
 import optuna
+import pandas as pd
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold
-from typing import Callable, Iterable, Generator
+from tqdm import tqdm
+
 from mlkaps.modeling.model_wrapper import ModelWrapper
 
 
