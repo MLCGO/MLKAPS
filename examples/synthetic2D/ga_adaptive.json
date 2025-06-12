@@ -6,7 +6,7 @@
         "bound": 3
       }
     },
-    "generate_tree": "C"
+    "tree_language": "C"
   },
   "PARAMETERS": {
     "KERNEL_INPUTS": {
