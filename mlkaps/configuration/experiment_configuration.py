@@ -65,8 +65,8 @@ class ExperimentConfig:
 
         # Extract every needed section from the json file
         self.keys = {}
-        self.tree_language = config_dict["EXPERIMENT"].get("generate_tree", None)
-        assert self.tree_language in [None, "C", "Python"], f"Unsupported tree language: {self.tree_language}"
+        self.tree_language = config_dict["EXPERIMENT"].get("tree_language", "C")
+        assert self.tree_language in ["C", "Python"], f"Unsupported tree language: {self.tree_language}"
 
         parser.parse_experiment_parameters(self, config_dict)
 
