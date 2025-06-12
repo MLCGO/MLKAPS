@@ -106,7 +106,7 @@ class SamplesCheckpoint:
             assert not samples.isnull().values.any(), f"The samples from {self.output_path} DataFrame contains NaN values."
 
         except AssertionError as e:
-            logging.warning("Saved samples at '{self.output_path}' do not seem correct for this experiment")
+            logging.warning(f"Saved samples at '{self.output_path}' do not seem correct for this experiment")
             logging.warning(str(e))
             raise e
 
