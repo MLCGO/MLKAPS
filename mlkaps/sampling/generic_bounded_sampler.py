@@ -24,7 +24,7 @@ def convert_variables_bounds_to_numeric(variables_types, variables_values):
       lowest and highest possible values for the variable.
 
     :param variables_types: A dictionary associating the name of each variable to its type. The type can be either
-        "Categorical", "Boolean", "int" or "float".
+        "categorical", "bool", "int" or "float".
     :type variables_types: dict
     :param variables_values: A dictionary associating the name of each variable to its possible values. The possible
         values must be a list of values for categorical variables, or a tuple (min, max) for
@@ -64,7 +64,7 @@ class GenericBoundedSampler(StaticSampler):
             corresponding to the bounds of each variable
             - Must have a __call__ method, returning 2d list of samples
         :param variable_types: A dictionary associating the name of each variable to its type. The type can be either
-            "Categorical", "Boolean", "int" or "float".
+            "categorical", "bool", "int" or "float".
             Can be None, in which case the bounds are not generated, and must be set later using
             set_variables(...)
         :type variables_types: dict
@@ -104,12 +104,12 @@ class GenericBoundedSampler(StaticSampler):
         """
         Set the variables used in the sampling process.
 
-        :param variables_types: Contains the types for each variable, must be one of ["int", "float", "Boolean", "Categorical"]
+        :param variables_types: Contains the types for each variable, must be one of ["int", "float", "bool", "categorical"]
         :type variables_types: dict
         :param variables_values: Contain the possible values for each variable:
-            For continuous types (int, float), must be a range [min, max]
-            For Categorical/Boolean types, must be a list of possible values
-        :type vairables_values: dict
+            For continuous types (int, float), must be a range [min, max].
+            For categorical/bool types, must be a list of possible values.
+        :type variables_values: dict
         :param mask: An iterable containing a list of variables to consider during the sampling process
             Variables not contained in the mask will be ignored
         """

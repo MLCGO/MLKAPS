@@ -122,9 +122,9 @@ class ExperimentConfig:
 
         The parameters should be passed as a dictionary, where the key is the name of the parameter
         containing a dict, accepting the following three subkeys:
-            - "Type": one of "Categorical, "Boolean", "Integer" or "Float"
-                - "Boolean" requires no other key
-                - "Categorical" requires key "Set"
+            - "Type": one of "categorical", "bool", "int" or "float"
+                - "bool" requires no other key
+                - "categorical" requires key "Set"
                 - "int" and "float" require one of "Set" or "Range"
             - "Set": Specifies an array of values for the parameter
             - "Range": Specifies a range of values defined by a tuple of
@@ -147,37 +147,37 @@ class ExperimentConfig:
         # And append their valuer/type to the feature map
         for p, v in parameters_to_promote.items():
             keys["features_type"][p] = v["Type"]
-            allowedTypes = {"Categorical": str, "Boolean": bool, "int": int, "float": float}
+            allowedTypes = {"categorical": str, "bool": bool, "int": int, "float": float}
             if v["Type"] not in allowedTypes:
-                raise parser.ParserError(f"Unknown type for parameter {p}: {v['Type']}, must be one of {allowedTypes.keys()}")
+                raise parser.ParserError(f"Unknown type for parameter {p}: {v['Type']}, must be one of {allowedTypes.keys()}.")
             type = allowedTypes[v["Type"]]
 
             # If the parameter is boolean, deduce the values to False/True
-            if keys["features_type"][p] == "Boolean":
+            if keys["features_type"][p] == "bool":
                 keys["features_values"][p] = ValueSet([False, True], type=bool)
                 continue
 
             allowedCkeys = ["Set", "Range"]
             nCKeys = len(list(filter(lambda x: x in allowedCkeys, v.keys())))
             if nCKeys == 0:
-                raise parser.ParserError(f"Parameter {p} requires one of the following keys: {allowedCkeys}")
+                raise parser.ParserError(f"Parameter {p} requires one of the following keys: {allowedCkeys}.")
             if nCKeys > 1:
-                raise parser.ParserError(f"Parameter {p} keys {allowedCkeys} are mutually exclusive")
+                raise parser.ParserError(f"Parameter {p} keys {allowedCkeys} are mutually exclusive.")
             if "Set" in v:
                 keys["features_values"][p] = ValueSet(v["Set"], type=type)
             else:
                 assert "Range" in v
                 nVals = len(v["Range"])
                 if type not in [float, int]:
-                    raise parser.ParserError(f'Parameter {p}: "Type" of "Range" must be "float" or "int"')
+                    raise parser.ParserError(f'Parameter {p}: "Type" of "Range" must be "float" or "int".')
                 if nVals < 2:
-                    raise parser.ParserError(f'Parameter {p}: "Range" requires at least lower and upper bounds')
+                    raise parser.ParserError(f'Parameter {p}: "Range" requires at least lower and upper bounds.')
                 if nVals > 4:
                     raise parser.ParserError(
-                        f'Parameter {p}: "Range" requires at most lower bound, upper bound, step/factor and progression type'
+                        f'Parameter {p}: "Range" requires at most lower bound, upper bound, step/factor and progression type.'
                     )
                 if any(not isinstance(x, (int, float)) or isinstance(x, bool) for x in v["Range"][:3]):
-                    raise parser.ParserError(f'Parameter {p}: "Range" bounds and step/factor must be numbers')
+                    raise parser.ParserError(f'Parameter {p}: "Range" bounds and step/factor must be numbers.')
 
                 if nVals == 2 and type == float:
                     keys["features_values"][p] = ValueRange(*v["Range"], type=type)
@@ -188,7 +188,7 @@ class ExperimentConfig:
                 progression = allowedProgression[0] if nVals < 4 else v["Range"][3]
                 if progression not in allowedProgression:
                     raise parser.ParserError(
-                        f"Unknown progression type for parameter {p}: {progression}, must be one of {allowedProgression}"
+                        f"Unknown progression type for parameter {p}: {progression}, must be one of {allowedProgression}."
                     )
                 keys["features_values"][p] = ValueSequence(
                     v["Range"][0], v["Range"][1], stepfactor, mode=progression, type=type

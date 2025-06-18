@@ -15,7 +15,7 @@ class TestGridSampler:
         assert data["b"].isin(b_vals).all()
 
     def test_grid_sampler_set_str(self):
-        v_types = {"a": "Categorical", "b": "Categorical"}
+        v_types = {"a": "categorical", "b": "categorical"}
         a_vals = ["0", "5"]
         b_vals = ["0", "50"]
         features = {"a": ValueSet(a_vals, type=str), "b": ValueSet(b_vals, type=str)}
@@ -64,7 +64,7 @@ class TestGridSampler:
         assert data.shape == (100 * 100, 2)
 
     def test_grid_sampler_mixed(self):
-        v_types = {"a": "int", "b": "float", "c": "Categorical"}
+        v_types = {"a": "int", "b": "float", "c": "categorical"}
         c_vals = ["0", "5", ".d"]
         features = {
             "a": ValueSequence(2, 15, 2, "geometric", type=int),

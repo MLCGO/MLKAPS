@@ -41,7 +41,7 @@ class CGenerator:
     """Simple helper class to generate code in C."""
 
     def getType(self, x, types):
-        return "const char *" if types[x] == "Categorical" else types[x]
+        return "const char *" if types[x] == "categorical" else types[x]
 
     def genFunction(self, off, feature, inputs, types):
         return (
@@ -66,7 +66,7 @@ class PythonGenerator:
     """Simple helper class to generate code in Python."""
 
     def getType(self, x, types):
-        return "str" if types[x] == "Categorical" else types[x]
+        return "str" if types[x] == "categorical" else types[x]
 
     def genFunction(self, off, feature, inputs, types):
         return f"{off}def get_{feature}({', '.join([f'{f}: {self.getType(f, types)}' for f in inputs])}):\n"
@@ -110,7 +110,7 @@ def write_decision_tree(configuration: ExperimentConfig, decision_tree, feature,
     Generate a function for the decision tree, accepting kernel inputs as arguments.
     Use given code generator to generate the code.
     """
-    feature_is_categorical = configuration.parameters_type[feature] == "Categorical"
+    feature_is_categorical = configuration.parameters_type[feature] == "categorical"
     feature_container = configuration.feature_values[feature]
 
     # Generate a function and recursively write the decision tree

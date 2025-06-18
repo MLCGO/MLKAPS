@@ -7,7 +7,7 @@
   "PARAMETERS": {
     "KERNEL_INPUTS": {
       "y": {
-        "Type": "Categorical",
+        "Type": "categorical",
         "Range": [
           1,
           4,

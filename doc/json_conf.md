@@ -39,12 +39,12 @@ In this section, the user specifies the different inputs and design parameters, 
 
 * `"KERNEL_INPUTS"` (required): subsection containing details on the user parameters.
     * Add a subsection for each user parameter:
-        * `Type` (required): variable type in `Categorical`, `int`, `float`, `boolean`
-        * `Values` (required): For Categorical variables, define the list of all possible string values. Example: `["one", "two", "three"]`. For boolean variables, define `[false, true]`. For integer and float variables, define an interval with the minimum and maximum value. Example: `[-2, 2]`.
+        * `Type` (required): variable type in `categorical`, `int`, `float`, `bool`
+        * `Values` (required): For categorical variables, define the list of all possible string values. Example: `["one", "two", "three"]`. For bool variables, define `[false, true]`. For int and float variables, define an interval with the minimum and maximum value. Example: `[-2, 2]`.
 * `"DESIGN_PARAMETERS"` (required): subsection containing details on the kernel design parameters.
     * Add a subsection for each kernel parameter:
-        * `Type` (required): variable type in `Categorical`, `int`, `float`, `boolean`
-        * `Values` (required): For Categorical variables, define the list of all possible string values. Example: `["one", "two", "three"]`. For boolean variables, define `[false, true]`. For integer and float variables, define an interval with the minimum and maximum value. Example: `[1, 5]`.
+        * `Type` (required): variable type in `categorical`, `int`, `float`, `bool`
+        * `Values` (required): For categorical variables, define the list of all possible string values. Example: `["one", "two", "three"]`. For bool variables, define `[false, true]`. For int and float variables, define an interval with the minimum and maximum value. Example: `[1, 5]`.
 
 # SAMPLING
 

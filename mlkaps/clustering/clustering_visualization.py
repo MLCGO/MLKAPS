@@ -87,7 +87,7 @@ def _create_colour_map(configuration, design_param):
     value_count = feature_values.get_size()
 
     cmap = matplotlib.colormaps.get_cmap("YlGn")
-    if feature_type in ["Categorical", "Boolean"]:
+    if feature_type in ["categorical", "bool"]:
         from_list = matplotlib.colors.LinearSegmentedColormap.from_list
         cmap = from_list(None, plt.cm.Set1(range(0, value_count)), value_count)
 
@@ -225,7 +225,7 @@ def _format_clustering_predictions(configuration, design_param, predictions, x_s
 
     if feature_type == "int":
         predictions = np.array([np.round(x) for x in predictions])
-    elif feature_type in ["Categorical", "Boolean"]:
+    elif feature_type in ["categorical", "bool"]:
         # We need to map categorial values to their index
         inverse_value_map = {v: k for k, v in enumerate(configuration["parameters"]["features_values"][design_param].values)}
 
@@ -299,7 +299,7 @@ def _plot_decision_colormap(clustering_model, configuration, design_param, optim
     if len(input_parameters) == 2:
         feature_type = configuration.parameters_type[design_param]
 
-        if feature_type in ["Categorical", "Boolean"]:
+        if feature_type in ["categorical", "bool"]:
             plt.pcolormesh(samples[0], samples[1], predictions, cmap=color_map, alpha=1)
         else:
             bounds = configuration["parameters"]["features_values"][design_param].get_sampling_bounds()

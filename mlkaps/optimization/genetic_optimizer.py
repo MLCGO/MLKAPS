@@ -213,9 +213,9 @@ class DesignParametersProblem(Problem):
                     pymoo_var = Real(bounds=feature_values[name].get_sampling_bounds())
                 case "int":
                     pymoo_var = Integer(bounds=feature_values[name].get_sampling_bounds())
-                case "Boolean":
+                case "bool":
                     pymoo_var = Binary()
-                case "Categorical":
+                case "categorical":
                     assert isinstance(feature_values[name], ValueSet)
                     pymoo_var = Choice(options=feature_values[name].sample_linear_space())
                 case _:

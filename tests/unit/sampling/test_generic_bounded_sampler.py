@@ -20,7 +20,7 @@ class TestGenericBoundedSampler:
         assert data["b"].isin(b_vals).all()
 
     def test_lhs_sampler_set_str(self, sampler):
-        v_types = {"a": "Categorical", "b": "Categorical"}
+        v_types = {"a": "categorical", "b": "categorical"}
         a_vals = ["hx", "xg"]
         b_vals = ["gz", "zg"]
         features = {"a": ValueSet(a_vals), "b": ValueSet(b_vals)}

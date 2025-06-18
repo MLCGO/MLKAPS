@@ -30,7 +30,7 @@
         ]
       },
       "c": {
-        "Type": "Categorical",
+        "Type": "categorical",
         "Set": [
           "one",
           "two",

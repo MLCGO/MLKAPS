@@ -117,11 +117,11 @@ class SamplesCheckpoint:
             return True
         if sample_type == "int64" and expected_type == "int":
             return True
-        if sample_type == "string" and expected_type == "Categorical":
+        if sample_type == "string" and expected_type == "categorical":
             return True
-        if sample_type == "object" and expected_type == "Categorical":
+        if sample_type == "object" and expected_type == "categorical":
             return True
-        if sample_type == "bool" and expected_type == "boolean":
+        if sample_type == "bool" and expected_type == "bool":
             return True
         return False
 

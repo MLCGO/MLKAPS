@@ -114,7 +114,7 @@ def _create_checkpoint1():
 
 def _create_checkpoint2():
     # sample with int, float, and categorical columns
-    samples_checkpoint = _build_samples_checkpoint({"id": "float", "j": "int", "k": "Categorical"}, ["r"])
+    samples_checkpoint = _build_samples_checkpoint({"id": "float", "j": "int", "k": "categorical"}, ["r"])
     sampler = _build_discard_sampler(samples_checkpoint)
 
     samples = pd.DataFrame({"id": [1.0, 2.0, 3.0], "j": [4, 5, 6], "k": ["One", "Two", "Three"]})
@@ -133,7 +133,7 @@ def _create_checkpoint2():
 
 def _create_checkpoint3():
     # sample with int, float, categorical, and boolean columns
-    samples_checkpoint = _build_samples_checkpoint({"id": "float", "j": "int", "k": "Categorical", "b": "boolean"}, ["r"])
+    samples_checkpoint = _build_samples_checkpoint({"id": "float", "j": "int", "k": "categorical", "b": "bool"}, ["r"])
     sampler = _build_discard_sampler(samples_checkpoint)
 
     samples = pd.DataFrame({"id": [1.0, 2.0, 3.0], "j": [4, 5, 6], "k": ["One", "Two", "Three"], "b": [True, False, False]})

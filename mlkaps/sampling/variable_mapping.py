@@ -12,16 +12,16 @@ import pandas as pd
 
 def _check_variables_type(variables):
     for variable, var_type in variables.items():
-        if var_type not in ["Categorical", "Boolean", "float", "int"]:
+        allowed_types = ["categorical", "bool", "float", "int"]
+        if var_type not in allowed_types:
             raise ValueError(
-                f"Unrecognized variable type for variable {variable}: {var_type}."
-                "Type must be one of ['Categorical', 'Boolean', 'float', 'int']"
+                f"Unrecognized variable type for variable {variable}: {var_type}." f"Type must be one of {allowed_types}."
             )
 
 
 def map_variables_to_numeric(data: pd.DataFrame, variables_types: dict, variables_values: dict) -> pd.DataFrame:
     """
-    Map a dataframe containing integers/categorical/boolean values to the corresponding numeric values
+    Map a dataframe containing integer/categorical/boolean values to the corresponding numeric values
     as defined by the variables_values/types dictionaries
 
     The mapping can be reversed using the map_float_to_variables function.
@@ -31,7 +31,7 @@ def map_variables_to_numeric(data: pd.DataFrame, variables_types: dict, variable
     :type data: pandas.DataFrame
     :param variables_types:
         A dictionary associating the name of each variable to its type. The type can be either
-        ["Categorical", "Boolean", "int", "float"]
+        ["categorical", "bool", "int", "float"]
     :type variables_types: dict
     :param variables_values:
         A dictionary associating the name of each variable to its possible values. The possible
@@ -66,7 +66,7 @@ def map_float_to_variables(data: pd.DataFrame, variables_types: dict, variables_
     :type data: pandas.DataFrame
     :param variables_types:
         A dictionary associating the name of each variable to its type. The type can be either
-        ["Categorical", "Boolean", "int", "float"]
+        ["categorical", "bool", "int", "float"]
     :type variables_types: dict
     :param variables_values:
         A dictionary associating the name of each variable to its possible values. The possible

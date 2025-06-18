@@ -87,7 +87,7 @@ class TestMonoKernelSampler:
         # The order is determined when we save the batch in SamplesCheckpoint.save_batch
         #
         samples_checkpoint = _build_samples_checkpoint(
-            {"id": "int", "a": "Categorical", "b": "Categorical", "c": "float"}, ["r"]
+            {"id": "int", "a": "categorical", "b": "categorical", "c": "float"}, ["r"]
         )
         sampler = _build_discard_sampler(samples_checkpoint)
 

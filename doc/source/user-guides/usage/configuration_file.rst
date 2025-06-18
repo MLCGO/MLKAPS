@@ -33,7 +33,7 @@ NOTE: the order of the parameter is important as it must match ordering in kerne
 	  "PARAMETERS": {
 		"DESIGN_PARAMETERS": {
 		  "algorithm": {
-			"Type": "Categorical",
+			"Type": "categorical",
 			"Set": [
 			  "mkl",
 			  "later",
@@ -67,7 +67,7 @@ The parameters are split in two distinct categories: **design parameters** and *
 * A **design parameter** is an optimization knob than can be set by the optimizer to optimize the kernel.
 
 In this example, the *algorithm parameter* is a design parameter, and the *matrix_size* and *nbr_splits* are kernel inputs.
-You can see that each parameter has a type, and a range of values. The type can be either **int**, **float**, **Boolean**, or **Categorical**.
+You can see that each parameter has a type, and a range of values. The type can be either **int**, **float**, **bool**, or **categorical**.
 
 .. code-block::
 	:caption: Kernel sampling

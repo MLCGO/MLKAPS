@@ -33,7 +33,7 @@ class TestHVSampler:
         def f(df):
             return pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
 
-        sampler = HVSampler({"a": "Categorical"}, features)
+        sampler = HVSampler({"a": "categorical"}, features)
         data = sampler.sample(100, None, f)
         data = sampler.sample(200, data, f)
         assert data.shape == (300, 2)

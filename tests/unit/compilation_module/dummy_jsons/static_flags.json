@@ -20,7 +20,7 @@
     },
     "DESIGN_PARAMETERS": {
       "summation": {
-        "Type": "Categorical",
+        "Type": "categorical",
         "Set": [
           "1sub",
           "2sublow",
@@ -29,7 +29,7 @@
         ]
       },
       "alternate": {
-        "Type": "Boolean",
+        "Type": "bool",
         "comment_Values": [
           false,
           true

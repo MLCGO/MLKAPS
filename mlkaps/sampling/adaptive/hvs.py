@@ -504,7 +504,7 @@ class HVSampler(AdaptiveSampler):
         :param variables_types:
             A dictionary containing the types of the variables to sample.
             The keys must be the name of the variables, and the values must be one of
-            ["int", "float", "categorical", "Boolean"].
+            ["int", "float", "categorical", "bool"].
             If None, the variables must be set later using the set_variables method.
             Defaults to None
         :type variables_types: dict | None, optional

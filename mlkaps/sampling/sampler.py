@@ -504,13 +504,13 @@ class Sampler:
         Initializes the sampler.
 
         :param variables_types: A dictionary associating the name of each variable to its type. The type can be either
-            ["Categorical", "Boolean", "int", "float"]. If None, then the variables types must be
+            ["categorical", "bool", "int", "float"]. If None, then the variables types must be
             set using the set_variables method before sampling.
         :type variables_types:  dict
         :param variables_values:
             A dictionary associating the name of each variable to its possible values.
-            Continuous variables (int, float) must be a range [min, max]
-            Categorical/Boolean variables must be a list of possible values
+            Continuous variables (int, float) must be a range [min, max],
+            categorical/bool variables must be a list of possible values
         :type variables_values:  dict
         :param variables_mask: A list of variables to keep. If None, all variables are kept.
         :type variables_mask: list
@@ -539,7 +539,7 @@ class Sampler:
 
         :param variables_types:
             A dictionary associating the name of each variable to its type. The type can be either
-            ["Categorical", "Boolean", "int", "float"].
+            ["categorical", "bool", "int", "float"].
             If none, then the variables are cleared and must be set again before sampling.
         :type variables_types: dict
         :param variables_values:
