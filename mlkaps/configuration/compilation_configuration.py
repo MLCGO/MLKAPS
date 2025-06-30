@@ -14,11 +14,11 @@ from ._parsing_helpers import assert_file_is_executable
 #   "set_name": {
 #    "flag_1_name": {
 #       "command_line": "flag_1_command_line",
-#       "Type": "Boolean"
+#       "Type": "bool"
 #    },
 #    "flag_2_name": {
 #       ...
-flag_sets_list = {"ffast-math": {"-ffast-math": {"command_line": "-ffast-math", "Type": "Boolean"}}}
+flag_sets_list = {"ffast-math": {"-ffast-math": {"command_line": "-ffast-math", "Type": "bool"}}}
 
 
 def register_predefined_flag_set(set_name: str, flag_set: dict):

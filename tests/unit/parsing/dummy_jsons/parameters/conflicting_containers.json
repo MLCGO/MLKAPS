@@ -1,0 +1,37 @@
+{
+  "EXPERIMENT": {
+    "objectives": [
+      "r"
+    ]
+  },
+  "PARAMETERS": {
+    "KERNEL_INPUTS": {
+      "y": {
+        "Type": "float",
+        "Range": [
+          -2,
+          2
+        ],
+        "Set": [
+          -2,
+          2
+        ]
+      }
+    },
+    "DESIGN_PARAMETERS": {
+      "b": {
+        "Type": "float",
+        "Range": [
+          1,
+          5
+        ]
+      }
+    }
+  },
+  "MODELING": {
+    "modeling_method": "lightgbm"
+  },
+  "CLUSTERING": {
+    "clustering_method": "decision_tree"
+  }
+}

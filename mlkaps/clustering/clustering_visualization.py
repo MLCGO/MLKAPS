@@ -15,6 +15,7 @@ import sklearn.dummy
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 
 from mlkaps.configuration import ExperimentConfig
+from mlkaps.sampling import ValueSet
 
 
 def plot_all_decision_tree(configuration: ExperimentConfig, decision_trees: dict):
@@ -83,10 +84,10 @@ def _create_colour_map(configuration, design_param):
 
     feature_type = configuration.parameters_type[design_param]
     feature_values = configuration["parameters"]["features_values"][design_param]
-    value_count = len(feature_values)
+    value_count = feature_values.get_size()
 
     cmap = matplotlib.colormaps.get_cmap("YlGn")
-    if feature_type in ["Categorical", "Boolean"]:
+    if feature_type in ["categorical", "bool"]:
         from_list = matplotlib.colors.LinearSegmentedColormap.from_list
         cmap = from_list(None, plt.cm.Set1(range(0, value_count)), value_count)
 
@@ -153,28 +154,27 @@ def _set_axis_range(ax, configuration):
     input_parameters = configuration.input_parameters
 
     ax.set_xlabel(input_parameters[0])
-    ax.set_xlim(features_values[input_parameters[0]][0], features_values[input_parameters[0]][1])
+    ax.set_xlim(*features_values[input_parameters[0]].get_sampling_bounds())
 
     if len(input_parameters) == 2:
         ax.set_ylabel(input_parameters[1])
-        ax.set_ylim(
-            features_values[input_parameters[1]][0],
-            features_values[input_parameters[1]][1],
-        )
+        ax.set_ylim(*features_values[input_parameters[1]].get_sampling_bounds())
     elif len(input_parameters) == 1:
         ax.set_ylabel(configuration["parameters"]["design"][0])
         plt.legend()
 
 
 def _scatter_optimization_results(ax, color_map, configuration, design_param, optimization_results):
-    feature_values = configuration["parameters"]["features_values"][design_param]
+    features = configuration["parameters"]["features_values"]
+    feature_values = features[design_param]
     y = optimization_results[design_param]
     values_y = np.unique(y)
 
     # Plot the optimization results on the same plot
-    feature_type = configuration.parameters_type[design_param]
     input_parameters = configuration.input_parameters
-    if feature_type in ["Categorical", "Boolean"]:
+    if isinstance(feature_values, ValueSet):
+        # FIXME: this was broken even before ValueContainers
+        # inverse_value_map = {v: k for k, v in enumerate(feature_values.values)} ????
         inverse_value_map = {v: k for k, v in configuration["parameters"]["feature_values"][design_param].items()}
         y = np.vectorize(inverse_value_map.get)(y)
 
@@ -188,6 +188,7 @@ def _scatter_optimization_results(ax, color_map, configuration, design_param, op
                 linewidths=1,
             )
 
+            # FXIME test_values = [fv.values for fv in features if fv in values_y] ????
             test_values = [fv for fv in feature_values if fv in values_y]
             plt.legend(
                 handles=sc.legend_elements()[0],
@@ -203,15 +204,17 @@ def _scatter_optimization_results(ax, color_map, configuration, design_param, op
                 color="b",
                 label="training predictions",
             )
+        # else: ????
 
     else:  # int or float
+        bounds = feature_values.get_sampling_bounds()
         ax.scatter(
             optimization_results[input_parameters[0]],
             optimization_results[input_parameters[1]],
             c=np.array(y),
             cmap=color_map,
-            vmin=feature_values[0],
-            vmax=feature_values[1],
+            vmin=bounds[0],
+            vmax=bounds[1],
             edgecolors="black",
             linewidths=1,
         )
@@ -222,9 +225,9 @@ def _format_clustering_predictions(configuration, design_param, predictions, x_s
 
     if feature_type == "int":
         predictions = np.array([np.round(x) for x in predictions])
-    elif feature_type in ["Categorical", "Boolean"]:
+    elif feature_type in ["categorical", "bool"]:
         # We need to map categorial values to their index
-        inverse_value_map = {v: k for k, v in configuration["parameters"]["feature_values"][design_param].items()}
+        inverse_value_map = {v: k for k, v in enumerate(configuration["parameters"]["features_values"][design_param].values)}
 
         predictions = np.vectorize(inverse_value_map.get)(predictions)
 
@@ -296,18 +299,18 @@ def _plot_decision_colormap(clustering_model, configuration, design_param, optim
     if len(input_parameters) == 2:
         feature_type = configuration.parameters_type[design_param]
 
-        if feature_type in ["Categorical", "Boolean"]:
+        if feature_type in ["categorical", "bool"]:
             plt.pcolormesh(samples[0], samples[1], predictions, cmap=color_map, alpha=1)
         else:
-            feature_values = configuration["parameters"]["features_values"][design_param]
+            bounds = configuration["parameters"]["features_values"][design_param].get_sampling_bounds()
             plt.pcolormesh(
                 samples[0],
                 samples[1],
                 predictions,
                 cmap=color_map,
                 alpha=1,
-                vmin=feature_values[0],
-                vmax=feature_values[1],
+                vmin=bounds[0],
+                vmax=bounds[1],
             )
             cbar = plt.colorbar()
             # cbar.ax.set_title(design_param)

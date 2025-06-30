@@ -4,8 +4,8 @@
   "PARAMETERS": {
     "DESIGN_PARAMETERS": {
       "summation": {
-        "Type": "Categorical",
-        "Values": [
+        "Type": "categorical",
+        "Set": [
           "1sub",
           "2sublow",
           "2subhigh",
@@ -13,7 +13,7 @@
         ]
       },
       "alternate": {
-        "Type": "Boolean",
+        "Type": "bool",
         "comment_Values": [
           false,
           true
@@ -21,7 +21,7 @@
       },
       "block_size": {
         "Type": "int",
-        "Values": [
+        "Range": [
           8,
           64
         ]
@@ -30,14 +30,14 @@
     "KERNEL_INPUTS": {
       "vec_size": {
         "Type": "int",
-        "Values": [
+        "Range": [
           128,
           32768
         ]
       },
       "cond": {
         "Type": "float",
-        "Values": [
+        "Range": [
           1,
           100000000
         ]

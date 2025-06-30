@@ -38,7 +38,7 @@ def _make_model(
     feature_type = configuration.parameters_type[feature]
 
     model_type = None
-    if feature_type in ["Categorical", "Boolean"]:
+    if feature_type in ["categorical", "bool"]:
         model_type = DecisionTreeClassifier
     elif feature_type in ["int", "float"]:
         model_type = DecisionTreeRegressor
@@ -50,7 +50,7 @@ def _make_model(
 
     # We need to ensure boolean are correctly encoded as bool, and not string,
     # objects, or integers as this raises an exception in sklearn
-    if feature_type == "Boolean":
+    if feature_type == "bool":
         optimization_results[feature] = optimization_results[feature].astype(bool)
 
     # Now fit the model on the whole dataset

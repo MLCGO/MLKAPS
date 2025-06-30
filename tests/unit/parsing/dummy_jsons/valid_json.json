@@ -10,8 +10,8 @@
   "PARAMETERS": {
     "DESIGN_PARAMETERS": {
       "summation": {
-        "Type": "Categorical",
-        "Values": [
+        "Type": "categorical",
+        "Set": [
           "1sub",
           "2sublow",
           "2subhigh",
@@ -19,7 +19,7 @@
         ]
       },
       "alternate": {
-        "Type": "Boolean",
+        "Type": "bool",
         "comment_Values": [
           false,
           true
@@ -27,23 +27,49 @@
       },
       "block_size": {
         "Type": "int",
-        "Values": [
+        "Range": [
           8,
           64
+        ]
+      },
+      "block_size2": {
+        "Type": "int",
+        "Range": [
+          8,
+          64,
+          2
+        ]
+      },
+      "whatever": {
+        "Type": "float",
+        "Range": [
+          2,
+          64.4,
+          2.1,
+          "geometric"
+        ]
+      },
+      "whatever2": {
+        "Type": "int",
+        "Range": [
+          2,
+          64,
+          2,
+          "arithmetic"
         ]
       }
     },
     "KERNEL_INPUTS": {
       "vec_size": {
         "Type": "int",
-        "Values": [
+        "Range": [
           128,
           32768
         ]
       },
       "cond": {
         "Type": "float",
-        "Values": [
+        "Range": [
           1,
           100000000
         ]
@@ -60,6 +86,9 @@
       "summation",
       "alternate",
       "block_size",
+      "block_size2",
+      "whatever",
+      "whatever2",
       "cond",
       "vec_size"
     ],

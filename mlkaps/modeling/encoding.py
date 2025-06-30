@@ -8,10 +8,10 @@ SPDX-License-Identifier: BSD-3-Clause
 import pandas as pd
 
 _encoding = {
-    "Categorical": "category",
+    "categorical": "category",
     "int": "int64",
     "float": "float64",
-    "Boolean": "bool",
+    "bool": "bool",
 }
 
 

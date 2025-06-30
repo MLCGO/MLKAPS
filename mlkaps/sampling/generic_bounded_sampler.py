@@ -16,26 +16,20 @@ from .static_sampler import StaticSampler
 from .variable_mapping import map_float_to_variables
 
 
-def convert_variables_bounds_to_numeric(variables_types, variables_values, include_high_bound=False):
+def convert_variables_bounds_to_numeric(variables_types, variables_values):
     """
     Convert a dictionary of variables bounds to a dictionary of numeric bounds:
-    Categorical variables are converted to [0, n_categories - 1] if include_high_bound is False,
-    or [0, n_categories] if include_high_bound is True.
-
-    For integer and float variables, the bounds are set to [min, max] where min and max are the
-    lowest and highest possible values for the variable.
-
+    - Categorical variables are converted to [0, n_values-1]
+    - For numeric variables, the bounds are set to [min, max] where min and max are the
+      lowest and highest possible values for the variable.
 
     :param variables_types: A dictionary associating the name of each variable to its type. The type can be either
-        "Categorical", "Boolean", "int" or "float".
+        "categorical", "bool", "int" or "float".
     :type variables_types: dict
     :param variables_values: A dictionary associating the name of each variable to its possible values. The possible
         values must be a list of values for categorical variables, or a tuple (min, max) for
         numerical variables.
     :type variables_values: dict
-    :param include_high_bound: Whether the upper bounds for categorical variables should be inclusive or not.
-        i.e, if True, the upper bound is set to n_categories, else it is set to n_categories - 1.
-    :type include_high_bound: bool
 
     :return: A dictionary associating the name of each variable to its bounds.
     :rtype: dict
@@ -43,15 +37,8 @@ def convert_variables_bounds_to_numeric(variables_types, variables_values, inclu
 
     # Generate a list of bounds for each parameter
     bounds = {}
-    for variable, var_type in variables_types.items():
-        # For boolean/Categorical, just take the number of possible values
-        if var_type in ["Categorical", "Boolean"]:
-            if not include_high_bound:
-                bounds[variable] = [0, len(variables_values[variable]) - 1]
-            else:
-                bounds[variable] = [0, len(variables_values[variable])]
-        else:
-            bounds[variable] = variables_values[variable]
+    for variable, values in variables_values.items():
+        bounds[variable] = values.get_sampling_bounds()
     return bounds
 
 
@@ -77,7 +64,7 @@ class GenericBoundedSampler(StaticSampler):
             corresponding to the bounds of each variable
             - Must have a __call__ method, returning 2d list of samples
         :param variable_types: A dictionary associating the name of each variable to its type. The type can be either
-            "Categorical", "Boolean", "int" or "float".
+            "categorical", "bool", "int" or "float".
             Can be None, in which case the bounds are not generated, and must be set later using
             set_variables(...)
         :type variables_types: dict
@@ -117,12 +104,12 @@ class GenericBoundedSampler(StaticSampler):
         """
         Set the variables used in the sampling process.
 
-        :param variables_types: Contains the types for each variable, must be one of ["int", "float", "Boolean", "Categorical"]
+        :param variables_types: Contains the types for each variable, must be one of ["int", "float", "bool", "categorical"]
         :type variables_types: dict
         :param variables_values: Contain the possible values for each variable:
-            For continuous types (int, float), must be a range [min, max]
-            For Categorical/Boolean types, must be a list of possible values
-        :type vairables_values: dict
+            For continuous types (int, float), must be a range [min, max].
+            For categorical/bool types, must be a list of possible values.
+        :type variables_values: dict
         :param mask: An iterable containing a list of variables to consider during the sampling process
             Variables not contained in the mask will be ignored
         """
@@ -160,6 +147,7 @@ class GenericBoundedSampler(StaticSampler):
             # Create a new dataframe to ensure ordering
             ordered_random_samples = pd.DataFrame(random_samples, columns=ordered_key)
         except Exception as exc:
+            print(f"Sampler failed with exception: {exc}")
             raise SamplerError from exc
 
         return ordered_random_samples
