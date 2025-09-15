@@ -302,10 +302,13 @@ class ExecutorFactory:
     def _build_function_runner(self, param):
         function = _get_key_or_error(param, "function", "Function runner requires a 'function' parameter")
 
-        function = FunctionPath(function)
-        # If the path is relative, then reference it to the working directory
-        if function.is_source() and function.is_relative():
-            function.path = _make_path_absolute(function.path, self.config.working_directory)
+        if isinstance(function, (str, pathlib.Path)):
+            function = FunctionPath(function)
+            # If the path is relative, then reference it to the working directory
+            if function.is_source() and function.is_relative():
+                function.path = _make_path_absolute(function.path, self.config.working_directory)
+        elif not callable(function):
+            raise ValueError("Function runner requires a callable function or a valid FunctionPath/str object")
 
         objectives = self.config.objectives
         timeout = self._get_timeout(param)
