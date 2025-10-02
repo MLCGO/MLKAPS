@@ -5,6 +5,13 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
+from lightgbm import LGBMRegressor
+import pandas as pd
+import numpy as np
+from scipy.stats import norm
+import pprint
+import logging
+
 """
 This file contains a scalable implementation of a variance estimator using Quantile Regression with LightGBM.
 
@@ -17,17 +24,11 @@ Where:
 
 Two methods are implemented:
 - Standard: one model for the lower quantile and one for the upper quantile
-- Forced symmetry: a single model is used to compute the upper quantile, and the lower quantiel is computed symmetrically around the mean.
-This method enforces normality required for the variance estimation and is cheapr to compute.
+- Forced symmetry: a single model is used to compute the upper quantile,
+  and the lower quantile is computed symmetrically around the mean.
+This method enforces normality required for the variance estimation and is cheaper to compute.
 
 """
-
-from lightgbm import LGBMRegressor
-import pandas as pd
-import numpy as np
-from scipy.stats import norm
-import pprint
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -5,16 +5,16 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-"""
-This file contains an implementation of a KDTree to be used with the bayesian sampler.
-As opposed to classical usage of the KDTree, we do not use the KDTree to find nearest neighbors, 
-but rather to partition the space into hyperrectangles.
-"""
-
 import numpy as np
 import pandas as pd
 from typing import Union
 import logging
+
+"""
+This file contains an implementation of a KDTree to be used with the bayesian sampler.
+As opposed to classical usage of the KDTree, we do not use the KDTree to find nearest neighbors,
+but rather to partition the space into hyperrectangles.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -276,7 +276,8 @@ class KDTree:
 
         if self.lefts[node] != -1 or self.rights[node] != -1:
             raise ValueError(
-                f"Node {node} is already split ({self.lefts[node]/self.rights[node]}, along {self.split_axis[node]}: {self.thresholds[node]})"
+                f"Node {node} is already split ({self.lefts[node] / self.rights[node]}, "
+                f"along {self.split_axis[node]}: {self.thresholds[node]})"
             )
 
         if node < 0 or node >= len(self.nodes):

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 from pymoo.core.problem import Problem
-from mlkaps.sampling.bayesian.kdtree import KDTree, KDTreeNode
+from mlkaps.sampling.bayesian.kdtree import KDTree
 from typing import Callable
 
 
@@ -186,6 +186,7 @@ class KDTreeSplitter:
         partition = self.partitionner.nodes[partition]
 
         from mlkaps.sampling.generic_bounded_sampler import RandomSampler
+
         sampler = RandomSampler(self.input_features, self.feature_values, self.partitionner.ordering)
         samples = sampler(2048)
         design_parameters = np.tile(partition.data["parameters"].values, (samples.shape[0], 1))
@@ -198,7 +199,6 @@ class KDTreeSplitter:
         std = pred.std()
         cv = std / mean
         return cv < 0.1, partition
-        
 
     def cv_split(self, model, samples, next):
         cv_low, partition = self._should_split_cv(model, next)
@@ -265,7 +265,7 @@ class KDTreeSplitter:
         """
         if self.directions[self.objective] == "minimize":
             return v1 < v2
-        elif self.directions[self.objective]  == "maximize":
+        elif self.directions[self.objective] == "maximize":
             return v1 > v2
 
 

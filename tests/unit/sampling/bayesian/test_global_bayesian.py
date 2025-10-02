@@ -1,9 +1,9 @@
 from mlkaps.sampling.bayesian.global_bayesian import BayesianSampler, KDTreeSplitter
-from mlkaps.sampling.bayesian.kdtree import KDTree, KDTreeNode
+from mlkaps.sampling.bayesian.kdtree import KDTree
 from mlkaps.modeling.quantile_variance_estimator import QuantileLGBMMixture
 import numpy as np
 import pandas as pd
-import copy
+
 
 class TestBayesianSplitter:
 
@@ -52,19 +52,14 @@ class TestBayesianSplitter:
 
         data = pd.DataFrame({"x1": [0.1, 0.2], "x2": [0.1, 0.2], "y": [0.1, 0.2]})
 
-        assert splitter._is_better(0.1, 0.5) == True
-        assert splitter._is_better(0.5, 0.1) == False
+        assert splitter._is_better(0.1, 0.5) is True
+        assert splitter._is_better(0.5, 0.1) is False
         assert splitter._idx_of_optimum(data) == 0
 
         splitter = KDTreeSplitter(objective, {"y": "maximize"}, partitionner, model)
-        assert splitter._is_better(0.1, 0.5) == False
-        assert splitter._is_better(0.5, 0.1) == True
+        assert splitter._is_better(0.1, 0.5) is False
+        assert splitter._is_better(0.5, 0.1) is True
         assert splitter._idx_of_optimum(data) == 1
-
-        
-        
-
-
 
 
 class TestBayesianSampler:

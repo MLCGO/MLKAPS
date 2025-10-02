@@ -1,8 +1,8 @@
-
 from mlkaps.sampling.bayesian.kdtree import KDTree, KDTreeNode
 import pytest
 import numpy as np
 import pandas as pd
+
 
 class TestKDTree:
 
@@ -63,13 +63,12 @@ class TestKDTree:
         tree.split(0, "x", 0.5)
         with pytest.raises(ValueError):
             tree.split(0, "x", 0.5)
-        
+
         with pytest.raises(IndexError):
             tree.split(-5, "y", 0.5)
 
         with pytest.raises(IndexError):
             tree.split(8, "x", 0.5)
-
 
     def test_can_compute_volume(self):
         bounds = {"x": [0, 2], "y": [0, 2]}
