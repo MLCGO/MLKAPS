@@ -10,11 +10,7 @@ import time
 import pandas as pd
 import pytest
 
-from mlkaps.sampling.adaptive import (
-    TimeStoppingCriterion,
-    MaxNSampleStoppingCriterion,
-    ErrorConvergenceStoppingCriterion,
-)
+from mlkaps.sampling.adaptive import ErrorConvergenceStoppingCriterion, MaxNSampleStoppingCriterion, TimeStoppingCriterion
 
 
 class TestTimeCriterion:

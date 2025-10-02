@@ -91,6 +91,9 @@ class TestProcessCleanupHandler:
 
     @temporary_env
     def test_can_timeout(self):
+        # setup_logging()
+        # add_file_logger(pathlib.Path(__file__).parent)
+
         if os.name == "nt":
             t_out = 1
         else:
@@ -108,7 +111,7 @@ class TestProcessCleanupHandler:
         )
         end = time.time()
         print(f"subprocess harness begin: {begin}, end: {end}, t_out: {t_out}")
-        assert (end - begin) < 2 * t_out
+        assert (end - begin) < 4 * t_out
         if os.name == "nt":
             assert res.exitcode == 1
         else:

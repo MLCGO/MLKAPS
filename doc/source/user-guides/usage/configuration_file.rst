@@ -33,8 +33,8 @@ NOTE: the order of the parameter is important as it must match ordering in kerne
 	  "PARAMETERS": {
 		"DESIGN_PARAMETERS": {
 		  "algorithm": {
-			"Type": "Categorical",
-			"Values": [
+			"Type": "categorical",
+			"Set": [
 			  "mkl",
 			  "later",
 			  "split",
@@ -45,14 +45,14 @@ NOTE: the order of the parameter is important as it must match ordering in kerne
 		"KERNEL_INPUTS": {
 		  "matrix_size": {
 			"Type": "int",
-			"Values": [
+			"Range": [
 			  31,
 			  200
 			]
 		  },
 		  "nbr_splits": {
 			"Type": "int",
-			"Values": [
+			"Range": [
 			  0,
 			  29
 			]
@@ -67,7 +67,7 @@ The parameters are split in two distinct categories: **design parameters** and *
 * A **design parameter** is an optimization knob than can be set by the optimizer to optimize the kernel.
 
 In this example, the *algorithm parameter* is a design parameter, and the *matrix_size* and *nbr_splits* are kernel inputs.
-You can see that each parameter has a type, and a range of values. The type can be either **int**, **float**, **Boolean**, or **Categorical**.
+You can see that each parameter has a type, and a range of values. The type can be either **int**, **float**, **bool**, or **categorical**.
 
 .. code-block::
 	:caption: Kernel sampling
@@ -173,5 +173,4 @@ It also includes a sampler that is used to generate the input configurations tha
 The clustering section defines which method to use for the clustering algorithm, as well as its parameters.
 
 When the goal is to generate decision tree code one must use the decision tree algorithm. For decision tree the `max_depth` parameters is to be set to a value high enough to ensure that the tree captures the whole optimization space, but small
-enough that it doesn't impedes the performance of the kernel. 
-
+enough that it doesn't impedes the performance of the kernel.

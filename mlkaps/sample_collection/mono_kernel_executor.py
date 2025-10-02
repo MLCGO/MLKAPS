@@ -54,13 +54,14 @@ class MonoKernelExecutor:
         self,
         runner,
         resolver,
+        samples_checkpoint,
         *,
         progress_bar: bool | object = False,
         pre_execution_callbacks: None | Iterable[callable] = None,
     ):
         self.runner = runner
         self.resolver = resolver
-
+        self.samples_checkpoint = samples_checkpoint
         self.progress_bar = progress_bar
 
         self.pre_execution_callbacks = pre_execution_callbacks
@@ -91,12 +92,15 @@ class MonoKernelExecutor:
 
     def _run_all_samples(self, samples: pd.DataFrame) -> pd.DataFrame:
         n_failures = 0
-        results = []
+        results = None
 
         pbar = _ProgressBarWrapper(self.progress_bar, len(samples))
 
-        for id in samples.index:
-            sample = samples.loc[id].to_dict()
+        batch_size = min(10, len(samples))
+        batch = []
+        # itertuples returns each row as a tuple with the types of each column unchanged
+        for count, row in enumerate(samples.itertuples(index=False), start=1):
+            sample = row._asdict()  # note this is a private interface to a Pandas object.
             result = self.runner(sample)
 
             if result.error is not None:
@@ -106,25 +110,39 @@ class MonoKernelExecutor:
                 if n_failures > 100:
                     raise KernelSamplingError("Too many sampling failures, aborting")
 
-            results.append(sample | result.data)
+            batch.append(sample | result.data)
             pbar()
 
+            if count % batch_size == 0:
+                results = self._decorate_resolve_and_save_batch(samples, results, batch)
+                batch = []
+
+        if count % batch_size != 0:
+            results = self._decorate_resolve_and_save_batch(samples, results, batch)
+
         pbar.close()
-
         return results
 
-    def _decorate_and_resolve(self, samples: pd.DataFrame, results: list[dict]) -> pd.DataFrame:
+    def _decorate_resolve_and_save_batch(
+        self, samples: pd.DataFrame, results: pd.DataFrame, batch: list[dict]
+    ) -> pd.DataFrame:
 
-        # Copy the dtypes used in the samples
-        dtypes = {col: dtype for col, dtype in samples.dtypes.items()}
+        # Convert batch to a dataframe, append it to the .csv file, append it to the current
+        # results, and return.
+        batch = pd.DataFrame(batch)
 
-        # Convert the results (list of dict) to a DataFrame
-        results = pd.DataFrame(results)
-        results = results.astype(dtypes)
+        # Normalize the types -- I don't think this is needed, but no harm
+        dtypes = {col: dtype for col, dtype in batch.dtypes.items()}
+        batch = batch.astype(dtypes)
 
-        results = self.resolver(results).reset_index(drop=True)
+        # note the column order is determined when we save the batch in save_batch.
+        batch = self.resolver(batch).reset_index(drop=True)
+        batch = self.samples_checkpoint.save_batch(batch)
 
-        return results
+        if results is None:
+            return batch
+        else:
+            return pd.concat([results, batch], ignore_index=True)
 
     def __call__(self, samples: None | pd.DataFrame) -> pd.DataFrame:
 
@@ -134,6 +152,4 @@ class MonoKernelExecutor:
         self._maybe_do_pre_execution()
 
         results = self._run_all_samples(samples)
-        results = self._decorate_and_resolve(samples, results)
-
         return results

@@ -44,12 +44,12 @@ if(OPENBLAS_TARGET_FALLBACK)
 	        NO_DEFAULT_PATH  # Prevent picking system default first
     )
     if(NOT OPENBLAS_LIB)
-        message(FATAL_ERROR "OpenBLAS library not found. Install openblas-openmp 
+        message(FATAL_ERROR "OpenBLAS library not found. Install openblas-openmp
                 (Fedora) or libopenblas-openmp-dev (Ubuntu)")
     endif()
 
     if(NOT OPENBLAS_INCLUDE_DIR)
-        message(FATAL_ERROR "OpenBLAS headers not found. 
+        message(FATAL_ERROR "OpenBLAS headers not found.
                 Install openblas-devel (Fedora) or libopenblas-dev (Ubuntu)")
     endif()
     message(STATUS "Manual OpenBLAS: Library=${OPENBLAS_LIB}, Include=${OPENBLAS_INCLUDE_DIR}")

@@ -5,17 +5,17 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-from dataclasses import dataclass
-import subprocess
-import textwrap
-from contextlib import suppress
-import os
-import signal
 import logging
+import os
 import pathlib
-from collections import namedtuple
-from typing import Dict
+import signal
+import subprocess
 import sys
+import textwrap
+from collections import namedtuple
+from contextlib import suppress
+from dataclasses import dataclass
+from typing import Dict
 
 
 @dataclass

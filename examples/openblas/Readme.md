@@ -126,7 +126,7 @@ After running the experiment, you get the following outputs:
     - `kernel_sampling/samples.csv` contain the samples collected by MLKAPS
     - `metadata/` will contain the logs and a copy of the configuration used for the run.
     - `optim.csv` will contain the results of MLKAPS optimization phase: those are the optimums solutions predicted on a regular grid on the Input space. The final decision trees are trained on this data.
-    - `performance_model.pkl` contains the surrogate model used by MLKAPS for the `performance` objective. You can easily reload this model using 
+    - `performance_model.pkl` contains the surrogate model used by MLKAPS for the `performance` objective. You can easily reload this model using
     [Pickle](https://docs.python.org/3/library/pickle.html) and call the `model.predict(data: pd.Dataframe)` method to predict new points. This is useful to validate the model.
     - `nthreads_clustered_model.pkl` contains the decision tree fitted on `optim.csv` ([Scikit-Learn decision tree regressor](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeRegressor.html)).
     - `C_nthreads_tree.c`contains the decision tree converted to C code.

@@ -8,7 +8,9 @@ Definition for the base class of all adaptive samplers
 """
 
 from collections.abc import Callable
+
 import pandas as pd
+
 from ..sampler import Sampler
 
 
@@ -31,7 +33,7 @@ class AdaptiveSampler(Sampler):
 
         :param variables_types:
             The types of the variables to be sampled, as a dict of {variable_name: variable_type}
-            The type can be either ["int", "float", "Categorical", "Boolean"]
+            The type can be either ["int", "float", "categorical", "bool"]
             If none is provided, the variables must be set later with set_variables(...)
         :type variables_types: dict
         :param variables_values:

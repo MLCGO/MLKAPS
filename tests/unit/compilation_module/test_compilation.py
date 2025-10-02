@@ -9,8 +9,8 @@ import json
 import os
 import unittest
 
-from mlkaps.configuration.compilation_configuration import register_predefined_flag_set
 from mlkaps.configuration import ExperimentConfig
+from mlkaps.configuration.compilation_configuration import register_predefined_flag_set
 
 
 def _fetch_dummy_json(json_name):
@@ -60,8 +60,8 @@ class ParsingCompilationTestCase(unittest.TestCase):
         register_predefined_flag_set(
             "test_set_please_ignore",
             {
-                "debug_1": {"command_line": "-DDEBUG_1", "Type": "Boolean"},
-                "debug_2": {"command_line": "-DDEBUG_2", "Type": "Boolean"},
+                "debug_1": {"command_line": "-DDEBUG_1", "Type": "bool"},
+                "debug_2": {"command_line": "-DDEBUG_2", "Type": "bool"},
             },
         )
         res, path = _fetch_dummy_json("predefined_sets.json")

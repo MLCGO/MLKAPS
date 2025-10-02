@@ -9,10 +9,11 @@ import os
 import pathlib
 
 from deprecated import deprecated
+
+from mlkaps.configuration.compilation_configuration import CompilationConfiguration
+from mlkaps.sampling import ValueRange, ValueSet, ValueSequence
+
 from . import _parser as parser
-from mlkaps.configuration.compilation_configuration import (
-    CompilationConfiguration,
-)
 
 
 class ExperimentConfig:
@@ -65,6 +66,9 @@ class ExperimentConfig:
 
         # Extract every needed section from the json file
         self.keys = {}
+        self.tree_language = config_dict["EXPERIMENT"].get("tree_language", "C")
+        assert self.tree_language in ["C", "Python"], f"Unsupported tree language: {self.tree_language}"
+
         parser.parse_experiment_parameters(self, config_dict)
 
         # Optionally parse the optimization flags
@@ -117,9 +121,20 @@ class ExperimentConfig:
         promote them to features.
 
         The parameters should be passed as a dictionary, where the key is the name of the parameter
-        containing the "Type" subkey, one of "Categorical, "Boolean", "Integer" or "Float",
-        and the "Values" subkey, a list of values for the parameter if it is categorical, or a
-        tuple of (min, max) values if it is an integer or a float.
+        containing a dict, accepting the following three subkeys:
+            - "Type": one of "categorical", "bool", "int" or "float"
+                - "bool" requires no other key
+                - "categorical" requires key "Set"
+                - "int" and "float" require one of "Set" or "Range"
+            - "Set": Specifies an array of values for the parameter
+            - "Range": Specifies a range of values defined by a tuple of
+               [lower bound, upper bound, step/factor, progression type]
+                - lower and upper bounds are required
+                - step/factor and progression type are optional
+                - upper bound is interpreted as the last element in the range if no step/factor is given (inclusive),
+                  otherwise as one after last element (exclusive)
+                - progression type can be "arithmetic" (step) or "geometric" (factor) and defaults to "arithmetic"
+                - requires "int" and "float" "Type"
 
         Parameters
         ----------
@@ -132,12 +147,52 @@ class ExperimentConfig:
         # And append their valuer/type to the feature map
         for p, v in parameters_to_promote.items():
             keys["features_type"][p] = v["Type"]
+            allowedTypes = {"categorical": str, "bool": bool, "int": int, "float": float}
+            if v["Type"] not in allowedTypes:
+                raise parser.ParserError(f"Unknown type for parameter {p}: {v['Type']}, must be one of {allowedTypes.keys()}.")
+            type = allowedTypes[v["Type"]]
+
             # If the parameter is boolean, deduce the values to False/True
-            if keys["features_type"][p] == "Boolean":
-                keys["features_values"][p] = [False, True]
+            if keys["features_type"][p] == "bool":
+                keys["features_values"][p] = ValueSet([False, True], type=bool)
+                continue
+
+            allowedCkeys = ["Set", "Range"]
+            nCKeys = len(list(filter(lambda x: x in allowedCkeys, v.keys())))
+            if nCKeys == 0:
+                raise parser.ParserError(f"Parameter {p} requires one of the following keys: {allowedCkeys}.")
+            if nCKeys > 1:
+                raise parser.ParserError(f"Parameter {p} keys {allowedCkeys} are mutually exclusive.")
+            if "Set" in v:
+                keys["features_values"][p] = ValueSet(v["Set"], type=type)
             else:
-                # Else, just copy the user defined values
-                keys["features_values"][p] = v["Values"]
+                assert "Range" in v
+                nVals = len(v["Range"])
+                if type not in [float, int]:
+                    raise parser.ParserError(f'Parameter {p}: "Type" of "Range" must be "float" or "int".')
+                if nVals < 2:
+                    raise parser.ParserError(f'Parameter {p}: "Range" requires at least lower and upper bounds.')
+                if nVals > 4:
+                    raise parser.ParserError(
+                        f'Parameter {p}: "Range" requires at most lower bound, upper bound, step/factor and progression type.'
+                    )
+                if any(not isinstance(x, (int, float)) or isinstance(x, bool) for x in v["Range"][:3]):
+                    raise parser.ParserError(f'Parameter {p}: "Range" bounds and step/factor must be numbers.')
+
+                if nVals == 2 and type == float:
+                    keys["features_values"][p] = ValueRange(*v["Range"], type=type)
+                    continue
+
+                stepfactor = 1 if nVals < 3 else v["Range"][2]
+                allowedProgression = ["arithmetic", "geometric"]
+                progression = allowedProgression[0] if nVals < 4 else v["Range"][3]
+                if progression not in allowedProgression:
+                    raise parser.ParserError(
+                        f"Unknown progression type for parameter {p}: {progression}, must be one of {allowedProgression}."
+                    )
+                keys["features_values"][p] = ValueSequence(
+                    v["Range"][0], v["Range"][1], stepfactor, mode=progression, type=type
+                )
 
     def promote_features_to_design(self, feature_list):
         """

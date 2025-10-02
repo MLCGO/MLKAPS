@@ -5,9 +5,11 @@ Copyright (C) 2024-  MLKAPS contributors
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-import pytest
-from mlkaps.sampling.adaptive.multilevel_hvs import MultilevelHVS
 import pandas as pd
+import pytest
+
+from mlkaps.sampling.adaptive.multilevel_hvs import MultilevelHVS
+from mlkaps.sampling import ValueSequence
 
 
 def _run_simple_multilevel_hvs(features_types, features_values, levels):
@@ -23,30 +25,30 @@ def _run_simple_multilevel_hvs(features_types, features_values, levels):
 
 
 class TestMultilevelHVS:
-    def test_can_run(self):
+    def test_can_run1(self):
         features_types = {"a": "int", "b": "int"}
-        features_values = {"a": [0, 5], "b": [-5, 0]}
+        features_values = {"a": ValueSequence(0, 5, 1), "b": ValueSequence(-5, 0, 1)}
         levels = [["a"], ["b"]]
 
         _run_simple_multilevel_hvs(features_types, features_values, levels)
 
     def test_can_run_one_level(self):
         features_types = {"a": "int"}
-        features_values = {"a": [0, 5]}
+        features_values = {"a": ValueSequence(0, 5, 1)}
         levels = [["a"]]
 
         _run_simple_multilevel_hvs(features_types, features_values, levels)
 
     def test_can_run_multi_level(self):
         features_types = {"a": "int", "b": "int", "c": "int"}
-        features_values = {"a": [0, 5], "b": [-5, 0], "c": [0, 100]}
+        features_values = {"a": ValueSequence(0, 5, 1), "b": ValueSequence(-5, 0, 1), "c": ValueSequence(0, 100, 1)}
         levels = [["a"], ["b"], ["c"]]
 
         _run_simple_multilevel_hvs(features_types, features_values, levels)
 
     def test_can_run_multi_features_level(self):
         features_types = {"a": "int", "b": "int"}
-        features_values = {"a": [0, 5], "b": [-5, 0]}
+        features_values = {"a": ValueSequence(0, 5, 1), "b": ValueSequence(-5, 0, 1)}
         levels = [["a"], ["b", "a"]]
 
         _run_simple_multilevel_hvs(features_types, features_values, levels)
@@ -54,7 +56,7 @@ class TestMultilevelHVS:
     def test_validate_multilevel_hvs(self, tmp_path):
 
         features_types = {"x": "int", "optim": "int"}
-        features_values = {"x": [0, 300], "optim": [0, 200]}
+        features_values = {"x": ValueSequence(0, 300, 1, type=int), "optim": ValueSequence(0, 200, 1, type=int)}
         levels = [["x"], ["optim"]]
 
         def eval_features(tab):
@@ -92,10 +94,12 @@ class TestMultilevelHVS:
 
             partitions = sampler.partitions
             for p in partitions:
+                xbounds = p.axes["x"].get_sampling_bounds()
+                obounds = p.axes["optim"].get_sampling_bounds()
                 rect = plt.Rectangle(
-                    (p.axes["x"][0], p.axes["optim"][0]),
-                    p.axes["x"][1] - p.axes["x"][0],
-                    p.axes["optim"][1] - p.axes["optim"][0],
+                    (xbounds[0], obounds[0]),
+                    xbounds[1] - xbounds[0],
+                    obounds[1] - obounds[0],
                     color="red",
                     alpha=0.2,
                     lw=2,

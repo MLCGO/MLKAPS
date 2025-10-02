@@ -6,8 +6,8 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 
 import logging
-import pathlib
 import os
+import pathlib
 import re
 
 _log_format = "(%(asctime)s) [%(levelname)s] %(message)s"

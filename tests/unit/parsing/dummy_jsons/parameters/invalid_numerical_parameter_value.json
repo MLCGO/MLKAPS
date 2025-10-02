@@ -5,7 +5,7 @@
     "DESIGN_PARAMETERS": {
       "summation": {
         "Type": "my_type_that_does_not_exist",
-        "Values": [
+        "Set": [
           "1sub",
           "2sublow",
           "2subhigh",
@@ -21,7 +21,7 @@
       },
       "block_size": {
         "Type": "",
-        "Values": [
+        "Range": [
           8,
           40
         ]
@@ -30,14 +30,14 @@
     "KERNEL_INPUTS": {
       "vec_size": {
         "Type": "my_other_other_type_that_does_not_exist",
-        "Values": [
+        "Range": [
           128,
           -400000
         ]
       },
       "cond": {
         "Type": "",
-        "Values": [
+        "Range": [
           1,
           12
         ]

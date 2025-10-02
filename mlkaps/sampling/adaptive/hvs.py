@@ -8,24 +8,22 @@ Definition of the Hiearchical Variance Sampling (HVS) adaptive sampling method
 based on DOI:10.1007/978-3-642-32820-6_11
 """
 
-from typing import Callable
+import textwrap
 from pathlib import Path
+from typing import Callable
+
 import numpy as np
 import pandas as pd
 from numpy import ceil, sqrt
 from scipy import stats
 from sklearn.tree import DecisionTreeRegressor
-import textwrap
 from smt.sampling_methods import Random
 
-from .adaptive_sampler import AdaptiveSampler
-from ..sampler import SamplerError
-from mlkaps.sampling.variable_mapping import (
-    map_variables_to_numeric,
-    map_float_to_variables,
-)
+from mlkaps.sampling.variable_mapping import map_float_to_variables, map_variables_to_numeric
+
 from ..generic_bounded_sampler import LhsSampler
-from ..generic_bounded_sampler import convert_variables_bounds_to_numeric
+from ..sampler import SamplerError
+from .adaptive_sampler import AdaptiveSampler
 
 
 def _error_variance(confidence: float, input: pd.DataFrame) -> float:
@@ -173,7 +171,7 @@ def _std_partition_size(partition: HVSPartition) -> float:
     """
     size = 1
     for axis in partition.axes.values():
-        size *= axis[1] - axis[0]
+        size *= axis.get_size()
 
     return size
 
@@ -292,7 +290,7 @@ class HVSPartitionner:
         Fetch the two children of a node in the decision tree and computes their bounds
 
         :param tree_features:
-            A dictionnary containing the feature used at each node
+            A dictionary containing the feature used at each node
         :type tree_features: dict
         :param thresholds:
             The threshold used at each node of the tree
@@ -317,12 +315,13 @@ class HVSPartitionner:
         threshold = thresholds[node_id]
 
         # Build the children and insert them at the beginning of the stack
+        left, right = bounds[feature].split(threshold)
         left_axes = bounds.copy()
-        left_axes[feature] = [bounds[feature][0], threshold]
+        left_axes[feature] = left
         left_child = (children_left[node_id], left_axes)
 
         right_axes = bounds.copy()
-        right_axes[feature] = [threshold, bounds[feature][1]]
+        right_axes[feature] = right
         right_child = (children_right[node_id], right_axes)
 
         return [left_child, right_child]
@@ -452,7 +451,7 @@ class HVSPartitionner:
 
 class HVSampler(AdaptiveSampler):
     """Hierchical Variance Sampling (HVS) is an adaptive sampling strategy based on
-    decision-tree partitionning of the sampling space
+    decision-tree partitioning of the sampling space
 
     The algorithm is described in the following paper:
     https://hal.science/hal-00952307 (DOI:10.1007/978-3-642-32820-6_11)
@@ -465,12 +464,13 @@ class HVSampler(AdaptiveSampler):
 
     This class should be used in conjunction with the AdaptiveSamplingOrchestrator class for
     automated adaptive sampling
-    If used directly, the user must handles the stopping criteria and the final dataset himself
+    If used directly, the user must handles the stopping criteria and the final dataset itself
 
-    >>> features = {"x": [0, 5]}
+    >>> from mlkaps.sampling import ValueSequence
+    >>> features = {"x": ValueSequence(0, 6, 1, type=int)}
     >>> # Define the function to sample. which MUST return a dataframe containing the original
     >>> # dataframe, and the sampled values as new columns
-    >>> f = lambda df: pd.concat([df, df.apply(lambda x: x[0], axis=1)], axis=1)
+    >>> f = lambda df: pd.concat([df, df.apply(lambda x: x.iloc[0], axis=1)], axis=1)
     >>> sampler = HVSampler({"x": "int"}, features)
     >>> samples = sampler.sample(10, None, f)
     >>> # In this case, x = y for all samples
@@ -504,7 +504,7 @@ class HVSampler(AdaptiveSampler):
         :param variables_types:
             A dictionary containing the types of the variables to sample.
             The keys must be the name of the variables, and the values must be one of
-            ["int", "float", "categorical", "Boolean"].
+            ["int", "float", "categorical", "bool"].
             If None, the variables must be set later using the set_variables method.
             Defaults to None
         :type variables_types: dict | None, optional
@@ -555,20 +555,17 @@ class HVSampler(AdaptiveSampler):
         create map to numeric values. This also includes integers which are casted to float
         """
 
+        self.has_mapped_features = False
+
         if self.variables_values is None or self.variables_types is None:
-            self.has_mapped_features = False
             return
 
-        # Check whether any of the features non-float
-        # If true, then we must convert the features to float values
-        if not any(v in ["Categorical", "Boolean", "int"] for v in self.variables_types.values()):
-            self.has_mapped_features = False
-            self.numerical_features = self.variables_values
-            return
+        self.numerical_features = self.variables_values.copy()
 
-        self.has_mapped_features = True
-
-        self.numerical_features = convert_variables_bounds_to_numeric(self.variables_types, self.variables_values)
+        # Check whether any of the features is no continuous
+        # If true, then the features are mapped to numeric values (indices)
+        if any(not v.is_continuous() for v in self.variables_values.values()):
+            self.has_mapped_features = True
 
     def dump(self, output_directory: Path):
         """
@@ -785,7 +782,7 @@ class HVSampler(AdaptiveSampler):
             axes = partition.axes
 
             # Reorder the axes to match the order of the features
-            ranges = np.array(list(axes.values()))
+            ranges = np.array([v.get_sampling_bounds() for v in axes.values()])
             sampler = Random(xlimits=ranges)
             samples = pd.DataFrame(sampler(n_samples), columns=axes.keys())
 
