@@ -1,8 +1,9 @@
-from mlkaps.sampling.bayesian.global_bayesian import BayesianSampler, KDTreeSplitter
+from mlkaps.sampling.bayesian.partitionning_bayesian import PartitionningBayesianSampler, KDTreeSplitter
 from mlkaps.sampling.bayesian.kdtree import KDTree
-from mlkaps.modeling.quantile_variance_estimator import QuantileLGBMMixture
+from mlkaps.modeling.iqr_variance_estimator import IQRVarianceEstimator
 import numpy as np
 import pandas as pd
+from mlkaps.sampling import ValueRange
 
 
 class TestBayesianSplitter:
@@ -14,7 +15,7 @@ class TestBayesianSplitter:
         features = {"x1": [0, 1], "x2": [0, 1]}
 
         partitionner = KDTree({k: v for k, v in features.items() if k in ["x1"]}, feature_types)
-        model = QuantileLGBMMixture()
+        model = IQRVarianceEstimator()
 
         KDTreeSplitter(objective, directions, partitionner, model)
 
@@ -25,7 +26,7 @@ class TestBayesianSplitter:
         features = {"x1": [0, 1], "x2": [0, 1]}
 
         partitionner = KDTree({k: v for k, v in features.items() if k in ["x1"]}, feature_types)
-        model = QuantileLGBMMixture()
+        model = IQRVarianceEstimator()
 
         random_data = pd.DataFrame({"x1": np.random.rand(100), "x2": np.random.rand(100)})
         random_data["y"] = random_data.apply(lambda x: 1 if x["x1"] < 0.5 else 5, axis=1)
@@ -46,7 +47,7 @@ class TestBayesianSplitter:
         features = {"x1": [0, 1], "x2": [0, 1]}
 
         partitionner = KDTree({k: v for k, v in features.items() if k in ["x1"]}, feature_types)
-        model = QuantileLGBMMixture()
+        model = IQRVarianceEstimator()
 
         splitter = KDTreeSplitter(objective, directions, partitionner, model)
 
@@ -62,7 +63,7 @@ class TestBayesianSplitter:
         assert splitter._idx_of_optimum(data) == 1
 
 
-class TestBayesianSampler:
+class TestPartitionningBayesianSampler:
 
     @staticmethod
     def d2_synth_kernel(x):
@@ -71,25 +72,33 @@ class TestBayesianSampler:
     @staticmethod
     def harness_kernel(x):
         d = x.copy()
-        d["y"] = TestBayesianSampler.d2_synth_kernel(x)
+        d["y"] = TestPartitionningBayesianSampler.d2_synth_kernel(x)
         return d
 
     def test_can_build(self):
-        features = {"x1": [0, 1], "x2": [0, 1]}
+        features = {"x1": ValueRange(0, 1), "x2": ValueRange(0, 1)}
         feature_types = {"x1": "float", "x2": "float"}
         directions = {"y": "minimize"}
 
-        sampler = BayesianSampler(TestBayesianSampler.harness_kernel, ["x1"], features, feature_types, directions, "EI_size")
+        sampler = PartitionningBayesianSampler(
+            TestPartitionningBayesianSampler.harness_kernel, ["x1"], features, feature_types, directions, "EI_size"
+        )
         assert sampler.input_features == ["x1"]
         assert sampler.design_parameters == ["x2"]
         assert sampler.feature_values == features
 
     def test_can_sample(self):
-        features = {"x1": [0, 1], "x2": [0, 1]}
+        features = {"x1": ValueRange(0, 1), "x2": ValueRange(0, 1)}
         feature_types = {"x1": "float", "x2": "float"}
         directions = {"y": "minimize"}
 
-        sampler = BayesianSampler(
-            TestBayesianSampler.harness_kernel, ["x1"], features, feature_types, directions, "EI_size", bootstrap_ratio=0.14
+        sampler = PartitionningBayesianSampler(
+            TestPartitionningBayesianSampler.harness_kernel,
+            ["x1"],
+            features,
+            feature_types,
+            directions,
+            "EI_size",
+            bootstrap_ratio=0.14,
         )
         sampler(None, 100)

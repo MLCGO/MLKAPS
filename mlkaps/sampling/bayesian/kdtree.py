@@ -207,7 +207,7 @@ class KDTree:
 
     def __init__(
         self,
-        spatial_features: dict[str, list[float]],
+        spatial_features: dict,
         features_types: dict[str, str],
         handle_categorical=False,
     ):
@@ -215,7 +215,7 @@ class KDTree:
 
         :param spatial_features: A dictionnary containing the bounds of the node for each dimension.
         The keys are the names of the dimensions, and the values are lists of two floats for ub/lb.
-        :type spatial_features: dict[str, list[float]]
+        :type spatial_features: dict
         :param features_types: A dictionnary containing the type of each feature.
         :type features_types: dict[str, str]
         :param handle_categorical: Enables or disable the support of splitting upon categorical features, defaults to False
@@ -230,6 +230,8 @@ class KDTree:
         self.ordering = sorted([k for k in spatial_features.keys()])
         # Map to convert from the feature name to the index in the original data
         self.index_map = {k: i for i, k in enumerate(self.ordering)}
+
+        spatial_features = {k: spatial_features[k].get_sampling_bounds() for k in self.ordering}
 
         self.nodes = [KDTreeNode(spatial_features, 0, None, tree=self)]
 

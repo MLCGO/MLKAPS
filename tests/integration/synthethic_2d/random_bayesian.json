@@ -1,0 +1,102 @@
+{
+  "EXPERIMENT": {
+    "objectives": {
+      "r": {
+        "direction": "minimize",
+        "bound": 3
+      }
+    },
+    "tree_language": "Python"
+  },
+  "PARAMETERS": {
+    "KERNEL_INPUTS": {
+      "y": {
+        "Type": "float",
+        "Range": [
+          -2,
+          2
+        ]
+      },
+      "x": {
+        "Type": "float",
+        "Range": [
+          -2,
+          2
+        ]
+      }
+    },
+    "DESIGN_PARAMETERS": {
+      "b": {
+        "Type": "float",
+        "Range": [
+          1,
+          5
+        ]
+      },
+      "c": {
+        "Type": "categorical",
+        "Set": [
+          "one",
+          "two",
+          "three"
+        ]
+      }
+    }
+  },
+  "SAMPLING": {
+    "runner": "executable",
+    "runner_parameters": {
+      "kernel": "main.py",
+      "timeout": 5,
+      "parameters_order": [
+        "x",
+        "y",
+        "b",
+        "c"
+      ]
+    },
+    "sampler": "random_bayesian",
+    "sampler_parameters": {
+      "n_samples": 100,
+      "n_iterations": 10,
+      "bootstrap_ratio": 0.7
+    }
+  },
+  "MODELING": {
+    "modeling_method": "lightgbm",
+    "parameters": {
+      "objective": "mae",
+      "n_jobs": -1,
+      "verbose": -1,
+      "n_estimators": 20,
+      "min_data_in_leaf": 20,
+      "boosting": "gbdt",
+      "learning_rate": 0.15
+    }
+  },
+  "OPTIMIZATION": {
+    "sampling": {
+      "sampler": {
+        "sampling_method": "grid"
+      },
+      "sample_count": {
+        "x": 2,
+        "y": 2
+      }
+    },
+    "optimization_method": "genetic",
+    "optimization_parameters": {
+      "evolution": {
+        "pop_size": 20
+      },
+      "termination": {
+        "time": "00:00:5"
+      },
+      "selection_method": "mono",
+      "early_stopping": true
+    }
+  },
+  "CLUSTERING": {
+    "clustering_method": "decision_tree"
+  }
+}

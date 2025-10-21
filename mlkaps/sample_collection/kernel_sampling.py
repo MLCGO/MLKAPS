@@ -183,6 +183,150 @@ class _GAAdaptiveInterfaceWrapper:
         return samples_per_iteration
 
 
+class _PartitionningBayesianInterfaceWrapper:
+    def __init__(
+        self,
+        kernel_sampler,
+        config: ExperimentConfig,
+        sampler_type: str,
+        config_dict: dict,
+        output_path: pathlib.Path,
+    ):
+        self.kernel_sampler = kernel_sampler
+
+        if not callable(kernel_sampler):
+            raise ValueError("The kernel sampler must be a callable object")
+
+        self.config = config
+        self.config_dict = config_dict
+        self.output_path = output_path
+
+    def __call__(self) -> pd.DataFrame:
+        sampler, n_samples = self._build_sampler()
+        res = sampler(None, n_samples)
+        res.to_csv(self.output_path, index=False)
+        return res
+
+    def _build_sampler(self):
+        from mlkaps.sampling.bayesian.partitionning_bayesian import BayesianSampler
+
+        n_samples = _get_key_or_error(self.config_dict, "n_samples")
+        bootstrap_ratio = _get_key_or_error(self.config_dict, "bootstrap_ratio")
+        initial_depth = _get_key_or_error(self.config_dict, "initial_depth")
+        acq = _get_key_or_error(self.config_dict, "acquisition_func")
+        dump = _get_key_or_error(self.config_dict, "dump", default=False)
+
+        samples_per_iteration = self._get_samples_per_iter(n_samples, bootstrap_ratio)
+
+        do_early_stopping = _get_key_or_error(
+            self.config_dict,
+            "do_early_stopping",
+            "Enabling early stopping for the GA by default",
+            default=True,
+            fatal=False,
+        )
+
+        sampler = BayesianSampler(
+            self.kernel_sampler,
+            self.config.input_parameters,
+            self.config.feature_values,
+            self.config.parameters_type,
+            self.config["experiment"]["objectives_directions"],
+            acq=acq,
+            bootstrap_ratio=bootstrap_ratio,
+            initial_depth=initial_depth,
+            dump=dump,
+            output_dir=self.output_path.parent,
+            samples_per_iteration=samples_per_iteration,
+            do_early_stopping=do_early_stopping,
+        )
+        return sampler, n_samples
+
+    def _get_samples_per_iter(self, n_samples, bootstrap_ratio):
+        n_iterations = self.config_dict.get("n_iterations")
+        samples_per_iteration = self.config_dict.get("samples_per_iteration")
+
+        # Compute the number of samples taken with GA at each iteration
+        # Done either via a direct fixed number of samples or a fixed number of iterations
+        if all([n_iterations is None, samples_per_iteration is None]):
+            msg = textwrap.indent(f"Dictionnary:\n{pprint.pformat(self.config_dict)}\n", "\t=> ")
+            msg = f"Options 'n_iterations' and 'samples_per_iteration' are mutually exclusive\n{msg}"
+            raise ValueError(msg)
+        elif n_iterations is not None:
+            # if a number of iteration is given, compute the number of samples per iteration
+            # by dividing the number of samples by the number of iterations
+            samples_per_iteration = n_samples * (1 - bootstrap_ratio) / n_iterations
+        elif samples_per_iteration is None:
+            msg = textwrap.indent(f"Dictionnary:\n{pprint.pformat(self.config_dict)}\n", "\t=> ")
+            msg = f"Neither 'n_iterations' or 'samples_per_iteration' were defined\n{msg}"
+            raise ValueError(msg)
+        return samples_per_iteration
+
+
+class _RandomBayesianInterfaceWrapper:
+    def __init__(
+        self,
+        kernel_sampler,
+        config: ExperimentConfig,
+        sampler_type: str,
+        config_dict: dict,
+        samples_checkpoint: SamplesCheckpoint,
+    ):
+        self.kernel_sampler = kernel_sampler
+
+        if not callable(kernel_sampler):
+            raise ValueError("The kernel sampler must be a callable object")
+
+        self.config = config
+        self.config_dict = config_dict
+        self.samples_checkpoint = samples_checkpoint
+
+    def __call__(self) -> pd.DataFrame:
+        sampler, n_samples = self._build_sampler()
+        res = sampler(None, n_samples)
+        return res
+
+    def _build_sampler(self):
+        from mlkaps.sampling.bayesian.random_bayesian import RandomBayesianSampler
+
+        n_samples = _get_key_or_error(self.config_dict, "n_samples")
+        bootstrap_ratio = _get_key_or_error(self.config_dict, "bootstrap_ratio")
+        samples_per_iteration = self._get_samples_per_iter(n_samples, bootstrap_ratio)
+
+        sampler = RandomBayesianSampler(
+            self.kernel_sampler,
+            self.config.input_parameters,
+            self.config.feature_values,
+            self.config.parameters_type,
+            self.config["experiment"]["objectives_directions"],
+            bootstrap_ratio=bootstrap_ratio,
+            output_dir=self.output_path.parent,
+            samples_per_iteration=samples_per_iteration,
+            do_early_stopping=_get_key_or_error(self.config_dict, "do_early_stopping", default=True, fatal=False),
+        )
+        return sampler, n_samples
+
+    def _get_samples_per_iter(self, n_samples, bootstrap_ratio):
+        n_iterations = self.config_dict.get("n_iterations")
+        samples_per_iteration = self.config_dict.get("samples_per_iteration")
+
+        # Compute the number of samples taken with GA at each iteration
+        # Done either via a direct fixed number of samples or a fixed number of iterations
+        if all([n_iterations is None, samples_per_iteration is None]):
+            msg = textwrap.indent(f"Dictionnary:\n{pprint.pformat(self.config_dict)}\n", "\t=> ")
+            msg = f"Options 'n_iterations' and 'samples_per_iteration' are mutually exclusive\n{msg}"
+            raise ValueError(msg)
+        elif n_iterations is not None:
+            # if a number of iteration is given, compute the number of samples per iteration
+            # by dividing the number of samples by the number of iterations
+            samples_per_iteration = int(n_samples * (1 - bootstrap_ratio) / n_iterations)
+        elif samples_per_iteration is None:
+            msg = textwrap.indent(f"Dictionnary:\n{pprint.pformat(self.config_dict)}\n", "\t=> ")
+            msg = f"Neither 'n_iterations' or 'samples_per_iteration' were defined\n{msg}"
+            raise ValueError(msg)
+        return samples_per_iteration
+
+
 class _AdaptiveSamplerInterfaceWrapper:
     def __init__(
         self,
@@ -352,6 +496,8 @@ class SamplingSystemFactory:
             "ga_adaptive": _GAAdaptiveInterfaceWrapper,
             ("hvs", "multilevel_hvs"): _AdaptiveSamplerInterfaceWrapper,
             ("lhs", "random"): _StaticSamplerInterfaceWrapper,
+            "bayesian_global": _PartitionningBayesianInterfaceWrapper,
+            "random_bayesian": _RandomBayesianInterfaceWrapper,
         }
 
         wrapper = None

@@ -24,6 +24,7 @@ class Test2D:
         "file",
         [
             "ga_adaptive_single_input_optuna.json",
+            "random_bayesian.json",
             "hvs.json",
             "hvsr.json",
             "multilevel_hvsr.json",
