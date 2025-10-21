@@ -10,6 +10,7 @@ from mlkaps.modeling.lightgbm_wrapper import LightGBMWrapper, OptunaTunerLightgb
 from mlkaps.modeling.model_wrapper import ModelWrapper
 from mlkaps.modeling.modeling import SurrogateFactory, build_main_surrogates
 from mlkaps.modeling.xgboost_wrapper import XGBoostModelWrapper
+from mlkaps.modeling.iqr_variance_estimator import IQRVarianceEstimator
 
 __all__ = [
     "encode_dataframe",
@@ -19,4 +20,5 @@ __all__ = [
     "XGBoostModelWrapper",
     "build_main_surrogates",
     "SurrogateFactory",
+    "IQRVarianceEstimator",
 ]
