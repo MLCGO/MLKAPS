@@ -395,7 +395,9 @@ class ExecutorFactory:
         failure_resolver = self._build_failure_resolver()
         runner = self._build_runner()
 
-        kernel_sampler = MonoKernelExecutor(runner, failure_resolver, self.samples_checkpoint)
+        max_error = self.config_dict.get("max_failures", 100)
+
+        kernel_sampler = MonoKernelExecutor(runner, failure_resolver, self.samples_checkpoint, max_failures=max_error)
         return kernel_sampler
 
     def _build_runner(self):

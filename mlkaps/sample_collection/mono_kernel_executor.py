@@ -58,7 +58,24 @@ class MonoKernelExecutor:
         *,
         progress_bar: bool | object = False,
         pre_execution_callbacks: None | Iterable[callable] = None,
+        max_failures: None | int = 100,
     ):
+        """_summary_
+
+        :param runner: A callable that takes a sample dict and returns a Result object
+        :type runner: Callable[[dict], Result]
+        :param resolver: A callable that takes a Dataframe of samples with NaNs and fills them in (or remove them, etc.)
+        :type resolver: Callable[[pd.DataFrame], pd.DataFrame]
+        :param samples_checkpoint: A SamplesCheckpoint object to manage sample checkpoints
+        :type samples_checkpoint: SamplesCheckpoint
+        :param progress_bar: A progress bar object or a boolean indicating whether to show a progress bar
+        :type progress_bar: bool | object, optional
+        :param pre_execution_callbacks: Callbacks to run before executing samples, defaults to None
+        :type pre_execution_callbacks: None | Iterable[callable], optional
+        :param max_failures: Maximum number of failures allowed, defaults to 100. If None, no limit.
+        :type max_failures: None | int, optional
+        """
+
         self.runner = runner
         self.resolver = resolver
         self.samples_checkpoint = samples_checkpoint
@@ -66,6 +83,7 @@ class MonoKernelExecutor:
 
         self.pre_execution_callbacks = pre_execution_callbacks
         self._ran_pre_execution = False
+        self.max_failures = max_failures
 
     def _maybe_do_pre_execution(self):
         if self._ran_pre_execution or self.pre_execution_callbacks is None:
@@ -107,7 +125,7 @@ class MonoKernelExecutor:
                 n_failures += 1
                 self._log_error(result)
 
-                if n_failures > 100:
+                if self.max_failures is not None and n_failures > self.max_failures:
                     raise KernelSamplingError("Too many sampling failures, aborting")
 
             batch.append(sample | result.data)
